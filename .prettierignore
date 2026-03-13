@@ -1,0 +1,10 @@
+.yarn
+.nuxt
+.output
+.data
+.nitro
+.cache
+dist
+coverage
+node_modules
+yarn.lock

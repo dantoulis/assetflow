@@ -1,0 +1,29 @@
+{
+  "name": "assetflow",
+  "private": true,
+  "packageManager": "yarn@4.13.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n web,typecheck,api -c blue,magenta,green \"yarn workspace web dev\" \"yarn workspace web dev:typecheck\" \"yarn workspace api start:dev\"",
+    "dev:web": "yarn workspace web dev",
+    "dev:web:typecheck": "yarn workspace web dev:typecheck",
+    "dev:api": "yarn workspace api start:dev",
+    "lint": "yarn lint:web && yarn lint:api",
+    "lint:web": "yarn workspace web lint",
+    "lint:api": "yarn workspace api lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "yarn typecheck:web && yarn typecheck:api",
+    "typecheck:web": "yarn workspace web typecheck",
+    "typecheck:api": "yarn workspace api typecheck",
+    "build:web": "yarn workspace web build",
+    "build:api": "yarn workspace api build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}
