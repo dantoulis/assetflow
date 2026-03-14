@@ -1,6 +1,7 @@
 <template>
   <div>
-    <h1>{{ data }}</h1>
+    <h1 class="bg-red-500">{{ data }}</h1>
+    <Button size="sm">Shadcn works</Button>
   </div>
 </template>
 
