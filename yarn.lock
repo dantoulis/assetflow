@@ -2679,7 +2679,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nuxt/kit@npm:4.4.2, @nuxt/kit@npm:^4.2.0, @nuxt/kit@npm:^4.2.2, @nuxt/kit@npm:^4.3.1":
+"@nuxt/kit@npm:4.4.2, @nuxt/kit@npm:^4.2.0, @nuxt/kit@npm:^4.2.1, @nuxt/kit@npm:^4.2.2, @nuxt/kit@npm:^4.3.1":
   version: 4.4.2
   resolution: "@nuxt/kit@npm:4.4.2"
   dependencies:
@@ -2872,6 +2872,19 @@ __metadata:
     rollup-plugin-visualizer:
       optional: true
   checksum: 10c0/eee449510dce33d32a88acc66092cf61f0a6ff6044edffc14759556c8645a63e089655b5a0491e04e16247398f940a069e832a80baf00c2b26b08585205d894d
+  languageName: node
+  linkType: hard
+
+"@nuxtjs/color-mode@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@nuxtjs/color-mode@npm:4.0.0"
+  dependencies:
+    "@nuxt/kit": "npm:^4.2.1"
+    exsolve: "npm:^1.0.8"
+    pathe: "npm:^2.0.3"
+    pkg-types: "npm:^2.3.0"
+    semver: "npm:^7.7.3"
+  checksum: 10c0/50fb52aad8353bdfb2e8a26769390a2463b1869c167ccc2295b98b8f66e1a517cc239ec1145f952d8a6f0e900678f09c1c89ac881e06cb214571681aad8898bf
   languageName: node
   linkType: hard
 
@@ -4368,10 +4381,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/table-core@npm:8.21.3":
+  version: 8.21.3
+  resolution: "@tanstack/table-core@npm:8.21.3"
+  checksum: 10c0/40e3560e6d55e07cc047024aa7f83bd47a9323d21920d4adabba8071fd2d21230c48460b26cedf392588f8265b9edc133abb1b0d6d0adf4dae0970032900a8c9
+  languageName: node
+  linkType: hard
+
 "@tanstack/virtual-core@npm:3.13.22":
   version: 3.13.22
   resolution: "@tanstack/virtual-core@npm:3.13.22"
   checksum: 10c0/9418de063d5c5205dcebf373f6c293c829da3d478353258f6e11436c43f9caf07016d8adc6bf64b557f64697fbfc055148e9eeb815a3b18eacb1d3a5ae38e3a8
+  languageName: node
+  linkType: hard
+
+"@tanstack/vue-table@npm:^8.21.3":
+  version: 8.21.3
+  resolution: "@tanstack/vue-table@npm:8.21.3"
+  dependencies:
+    "@tanstack/table-core": "npm:8.21.3"
+  peerDependencies:
+    vue: ">=3.2"
+  checksum: 10c0/d2c0da0bcf411a1d457f1daa82323837c82416cb5e30f931c4b6e9aec2dd64e3259bade3f1d20398dc9bf5fcc665e315c697198fe8996b995f8c39a6a6aebee5
   languageName: node
   linkType: hard
 
@@ -5324,7 +5355,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vueuse/core@npm:^14.1.0":
+"@vueuse/core@npm:^14.1.0, @vueuse/core@npm:^14.2.1":
   version: 14.2.1
   resolution: "@vueuse/core@npm:14.2.1"
   dependencies:
@@ -15570,6 +15601,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vue-sonner@npm:^2.0.9":
+  version: 2.0.9
+  resolution: "vue-sonner@npm:2.0.9"
+  peerDependencies:
+    "@nuxt/kit": ^4.0.3
+    "@nuxt/schema": ^4.0.3
+    nuxt: ^4.0.3
+  peerDependenciesMeta:
+    "@nuxt/kit":
+      optional: true
+    "@nuxt/schema":
+      optional: true
+    nuxt:
+      optional: true
+  checksum: 10c0/0001fcfd9163dd69f74bbbdbd50f61d7ceb514bf16571562cd51b0824b89cee809de2f93e1bb13fcc06375a07bc3e8bc1f552cb98e8ba1a665c8aecda47e039c
+  languageName: node
+  linkType: hard
+
 "vue-tsc@npm:^3.2.5":
   version: 3.2.5
   resolution: "vue-tsc@npm:3.2.5"
@@ -15639,7 +15688,10 @@ __metadata:
     "@nuxt/fonts": "npm:^0.14.0"
     "@nuxt/icon": "npm:^2.2.1"
     "@nuxt/image": "npm:^2.0.0"
+    "@nuxtjs/color-mode": "npm:^4.0.0"
     "@tailwindcss/vite": "npm:^4.2.1"
+    "@tanstack/vue-table": "npm:^8.21.3"
+    "@vueuse/core": "npm:^14.2.1"
     class-variance-authority: "npm:^0.7.1"
     clsx: "npm:^2.1.1"
     eslint: "npm:^9.18.0"
@@ -15660,6 +15712,7 @@ __metadata:
     vue: "npm:^3.5.30"
     vue-eslint-parser: "npm:^10.1.1"
     vue-router: "npm:^5.0.3"
+    vue-sonner: "npm:^2.0.9"
     vue-tsc: "npm:^3.2.5"
   languageName: unknown
   linkType: soft

@@ -4,10 +4,9 @@
 
 <script setup lang="ts">
 definePageMeta({
+  layout: 'user',
   middleware: 'auth',
 });
 
-useHead({
-  title: 'Redirecting',
-});
+await navigateTo('/app/dashboard');
 </script>

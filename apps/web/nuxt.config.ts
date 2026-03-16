@@ -5,6 +5,17 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   css: ['~/assets/css/tailwind.css'],
+  components: [
+    {
+      path: '~/components/app',
+      pathPrefix: false,
+    },
+  ],
+  app: {
+    head: {
+      titleTemplate: '%s - AssetFlow',
+    },
+  },
 
   vite: {
     plugins: [tailwindcss()],
@@ -19,7 +30,19 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxt/fonts', '@nuxt/image', 'shadcn-nuxt'],
+  modules: [
+    '@nuxt/eslint',
+    '@nuxt/icon',
+    '@nuxt/fonts',
+    '@nuxt/image',
+    '@nuxtjs/color-mode',
+    'shadcn-nuxt',
+  ],
+  colorMode: {
+    classSuffix: '',
+    preference: 'system',
+    fallback: 'light',
+  },
   shadcn: {
     /**
      * Prefix for all the imported component.
