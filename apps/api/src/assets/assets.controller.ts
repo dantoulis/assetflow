@@ -1,35 +1,39 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { AssetService } from './asset.service';
+import { AssetService } from './assets.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
 import { UpdateAssetDto } from './dto/update-asset.dto';
 import { ParseIntPipe } from '@nestjs/common';
+import type { Asset } from '../generated/prisma/client';
 
-@Controller('asset')
+@Controller('assets')
 export class AssetController {
   constructor(private readonly assetService: AssetService) {}
 
   @Post()
-  create(@Body() createAssetDto: CreateAssetDto) {
+  async create(@Body() createAssetDto: CreateAssetDto): Promise<Asset> {
     return this.assetService.create(createAssetDto);
   }
 
   @Get()
-  findAll() {
+  async findAll(): Promise<Asset[]> {
     return this.assetService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Asset | null> {
     return this.assetService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateAssetDto: UpdateAssetDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateAssetDto: UpdateAssetDto,
+  ): Promise<Asset> {
     return this.assetService.update(id, updateAssetDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<Asset> {
     return this.assetService.remove(id);
   }
 }

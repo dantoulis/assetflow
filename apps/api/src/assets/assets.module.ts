@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AssetService } from './asset.service';
-import { AssetController } from './asset.controller';
+import { AssetService } from './assets.service';
+import { AssetController } from './assets.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
@@ -8,4 +8,4 @@ import { PrismaModule } from '../prisma/prisma.module';
   controllers: [AssetController],
   providers: [AssetService],
 })
-export class AssetModule {}
+export class AssetsModule {}
