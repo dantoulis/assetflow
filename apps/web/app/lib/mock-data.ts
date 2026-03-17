@@ -140,6 +140,12 @@ export const mockUsers: MockUser[] = [
   },
 ];
 
+const fallbackPreviewUser = mockUsers[0]!;
+
+export const previewAdminUser =
+  mockUsers.find((user) => user.role === 'ADMIN') ?? fallbackPreviewUser;
+export const previewUser = mockUsers.find((user) => user.role === 'USER') ?? fallbackPreviewUser;
+
 export const mockAssets: MockAsset[] = [
   {
     id: 'asset-001',
