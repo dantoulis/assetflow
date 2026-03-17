@@ -4,24 +4,24 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import type { User } from '../generated/prisma/client';
+import type { SafeUser } from './types';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+  async create(@Body() createUserDto: CreateUserDto): Promise<SafeUser> {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<SafeUser[]> {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<User | null> {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<SafeUser | null> {
     return this.usersService.findOne(id);
   }
 
@@ -29,12 +29,12 @@ export class UsersController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<User | null> {
+  ): Promise<SafeUser | null> {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<User> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<SafeUser> {
     return this.usersService.remove(id);
   }
 
@@ -42,7 +42,7 @@ export class UsersController {
   async updateRole(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserRoleDto: UpdateUserRoleDto,
-  ): Promise<User | null> {
+  ): Promise<SafeUser> {
     return this.usersService.updateRole(id, updateUserRoleDto);
   }
 }

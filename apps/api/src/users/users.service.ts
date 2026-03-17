@@ -3,43 +3,56 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import type { User } from '../generated/prisma/client';
+import type { SafeUser } from './types';
+import { Role } from '../generated/prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createUserDto: CreateUserDto): Promise<User> {
-    return this.prisma.user.create({ data: createUserDto });
-  }
-
-  findAll(): Promise<User[]> {
-    return this.prisma.user.findMany();
-  }
-
-  findOne(id: number): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { id },
+  async create(createUserDto: CreateUserDto): Promise<SafeUser> {
+    const data = { ...createUserDto, role: Role.USER };
+    return await this.prisma.user.create({
+      data,
+      omit: {
+        password: true,
+      },
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    return this.prisma.user.update({
+  async findAll(): Promise<SafeUser[]> {
+    return await this.prisma.user.findMany({
+      omit: { password: true },
+    });
+  }
+
+  async findOne(id: number): Promise<Promise<SafeUser | null>> {
+    return await this.prisma.user.findUnique({
+      where: { id },
+      omit: { password: true },
+    });
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<SafeUser> {
+    return await this.prisma.user.update({
       where: { id },
       data: updateUserDto,
+      omit: { password: true },
     });
   }
 
-  updateRole(id: number, updateUserRoleDto: UpdateUserRoleDto): Promise<User> {
-    return this.prisma.user.update({
+  async updateRole(id: number, updateUserRoleDto: UpdateUserRoleDto): Promise<SafeUser> {
+    return await this.prisma.user.update({
       where: { id },
       data: updateUserRoleDto,
+      omit: { password: true },
     });
   }
 
-  remove(id: number): Promise<User> {
-    return this.prisma.user.delete({
+  async remove(id: number): Promise<SafeUser> {
+    return await this.prisma.user.delete({
       where: { id },
+      omit: { password: true },
     });
   }
 }
