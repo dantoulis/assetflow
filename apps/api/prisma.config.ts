@@ -7,6 +7,7 @@ export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
+    seed: 'yarn exec tsx prisma/seed.ts',
   },
   datasource: {
     url: getDatabaseUrl(),
