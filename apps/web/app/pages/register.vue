@@ -8,10 +8,10 @@
           Register
         </div>
         <div class="space-y-2">
-          <h1 class="text-3xl font-semibold tracking-[-0.05em]">Create a preview user profile</h1>
+          <h1 class="text-3xl font-semibold tracking-[-0.05em]">Create an account</h1>
           <p class="text-sm leading-6 text-muted-foreground">
-            Registration is intentionally mocked right now. The form exists to validate the flow and
-            the UI density before any backend endpoint is implemented.
+            Registration now talks to the backend. The app surfaces still use preview data until the
+            rest of the real auth flow is finished.
           </p>
         </div>
       </div>
@@ -21,46 +21,50 @@
           <div class="mb-3 inline-flex rounded-2xl bg-primary/15 p-2 text-primary">
             <UserPlus class="size-4" />
           </div>
-          <p class="font-semibold">What this preview covers</p>
+          <p class="font-semibold">What this phase covers</p>
           <p class="mt-2 text-sm leading-6 text-muted-foreground">
-            Login, registration, route protection, profile shell, and the user-side asset and ticket
-            experience.
+            Register, login, logout, and session hydration against the backend auth endpoints.
           </p>
         </div>
         <div class="rounded-3xl border border-border/70 bg-muted/55 p-4 dark:bg-background/55">
           <div class="mb-3 inline-flex rounded-2xl bg-chart-2/18 p-2 text-chart-2">
             <Sparkles class="size-4" />
           </div>
-          <p class="font-semibold">What comes later</p>
+          <p class="font-semibold">What stays mocked</p>
           <p class="mt-2 text-sm leading-6 text-muted-foreground">
-            Password recovery, email verification, real validation, and the full API contract behind
-            these screens.
+            Dashboard data, assets, tickets, and profile surfaces remain preview-only for now.
           </p>
         </div>
       </div>
 
       <form class="space-y-5" @submit.prevent="handleRegister">
         <div class="space-y-2">
-          <Label for="name">Full name</Label>
-          <Input id="name" v-model="form.name" class="h-12 rounded-2xl" placeholder="Ava Morgan" />
-        </div>
-        <div class="space-y-2">
-          <Label for="company">Company</Label>
+          <Label for="username">Username</Label>
           <Input
-            id="company"
-            v-model="form.company"
+            id="username"
+            v-model="form.username"
             class="h-12 rounded-2xl"
-            placeholder="Northstar Labs"
+            placeholder="ava.morgan"
           />
         </div>
         <div class="space-y-2">
-          <Label for="email">Work email</Label>
+          <Label for="email">Email</Label>
           <Input
             id="email"
             v-model="form.email"
             type="email"
             class="h-12 rounded-2xl"
-            placeholder="ava@northstar.io"
+            placeholder="ava@assetflow.dev"
+          />
+        </div>
+        <div class="space-y-2">
+          <Label for="password">Password</Label>
+          <Input
+            id="password"
+            v-model="form.password"
+            type="password"
+            class="h-12 rounded-2xl"
+            placeholder="Choose a password"
           />
         </div>
         <Button
@@ -68,7 +72,7 @@
           class="h-12 w-full rounded-2xl text-sm font-semibold"
           :disabled="pending"
         >
-          {{ pending ? 'Creating preview...' : 'Create preview account' }}
+          {{ pending ? 'Creating account...' : 'Create account' }}
         </Button>
       </form>
 
@@ -88,32 +92,45 @@ import { toast } from 'vue-sonner';
 
 definePageMeta({
   layout: 'public',
-  middleware: 'auth',
 });
 
 useHead({
   title: 'Register',
 });
 
-const { registerPreview } = useMockAuth();
+const { register } = useAuth();
 
 const form = reactive({
-  name: '',
-  company: '',
+  username: '',
   email: '',
+  password: '',
 });
 
 const pending = ref(false);
 
 const handleRegister = async () => {
+  if (!form.username.trim() || !form.email.trim() || !form.password.trim()) {
+    toast.error('Fill in username, email, and password first.');
+    return;
+  }
+
   pending.value = true;
-  await registerPreview();
-  pending.value = false;
 
-  toast.success('Preview account created', {
-    description: 'You are now seeing the mocked user workspace.',
-  });
+  try {
+    await register({
+      username: form.username.trim(),
+      email: form.email.trim(),
+      password: form.password,
+    });
 
-  await navigateTo('/app/dashboard');
+    toast.success('Account created');
+    await navigateTo('/app/dashboard');
+  } catch {
+    toast.error('Unable to register', {
+      description: 'Check the values and try again.',
+    });
+  } finally {
+    pending.value = false;
+  }
 };
 </script>

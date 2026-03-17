@@ -125,7 +125,6 @@ import {
 
 definePageMeta({
   layout: 'user',
-  middleware: 'auth',
 });
 
 const route = useRoute();

@@ -124,23 +124,24 @@
 <script setup lang="ts">
 import { MessageCirclePlus, MessagesSquare, ShieldCheck, Sparkles } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
-import { formatRelativeDate, getAssetsForUser, getTicketsForUser } from '@/lib/mock-data';
+import {
+  formatRelativeDate,
+  getAssetsForUser,
+  getTicketsForUser,
+  previewUser,
+} from '@/lib/mock-data';
 
 definePageMeta({
   layout: 'user',
-  middleware: 'auth',
 });
-
-const { currentUser } = useMockAuth();
-
-if (!currentUser.value) throw createError({ statusCode: 401, statusMessage: 'Missing session' });
 
 useHead({
   title: 'My Tickets',
 });
 
-const assets = getAssetsForUser(currentUser.value.id);
-const tickets = ref(getTicketsForUser(currentUser.value.id));
+const viewer = previewUser;
+const assets = getAssetsForUser(viewer.id);
+const tickets = ref(getTicketsForUser(viewer.id));
 const dialogOpen = ref(false);
 const draftTicket = reactive({
   assetId: assets[0]?.id ?? '',

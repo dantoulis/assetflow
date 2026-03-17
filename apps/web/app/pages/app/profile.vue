@@ -3,7 +3,7 @@
     <PageIntro
       eyebrow="Profile"
       title="Your account snapshot."
-      description="This page reserves space for profile, security, and account preferences while keeping the frontend pass grounded in the current mocked data model."
+      description="This page reserves space for profile, security, and account preferences while the real auth flow is connected to backend endpoints and the rest of the product still runs on preview data."
     />
 
     <section class="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
@@ -83,7 +83,8 @@
             Password recovery routes already exist in the UI.
           </div>
           <div class="rounded-3xl border border-border/70 bg-background/55 p-4">
-            Role-based route protection is mocked through the demo session cookie.
+            The cookie-based backend session is real, but route access is still intentionally open
+            while the frontend auth flow is being finished.
           </div>
           <div class="rounded-3xl border border-border/70 bg-background/55 p-4">
             Real credential storage, reset tokens, and audit history will be added later.
@@ -122,18 +123,14 @@ import {
   getAssetsForUser,
   getRecurringMonthlySpend,
   getTicketsForUser,
+  previewUser,
 } from '@/lib/mock-data';
 
 definePageMeta({
   layout: 'user',
-  middleware: 'auth',
 });
 
-const { currentUser } = useMockAuth();
-
-if (!currentUser.value) throw createError({ statusCode: 401, statusMessage: 'Missing session' });
-
-const user = currentUser.value;
+const user = previewUser;
 
 useHead({
   title: 'Profile',

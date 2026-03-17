@@ -21,8 +21,8 @@
                 Asset operations, tickets, and renewals in one control layer.
               </h1>
               <p class="max-w-lg text-base leading-7 text-muted-foreground">
-                This phase is UI-first. Admin and user experiences are fully mocked so we can
-                validate flows, hierarchy, and theming before any API contract is locked in.
+                Backend auth is now wired into the frontend. The dashboard surfaces still run on
+                preview data while the rest of the real application flow gets connected.
               </p>
             </div>
           </div>
@@ -41,14 +41,14 @@
                 <div
                   class="rounded-2xl bg-primary/15 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
                 >
-                  mocked
+                  preview
                 </div>
               </div>
               <div class="grid gap-2.5 text-sm text-muted-foreground">
                 <div
                   class="rounded-2xl border border-border/70 bg-card/80 px-4 py-2.5 dark:border-white/10 dark:bg-background/55"
                 >
-                  Role-based shells and route guards
+                  Backend login, register, logout, and session hydration
                 </div>
                 <div
                   class="rounded-2xl border border-border/70 bg-card/80 px-4 py-2.5 dark:border-white/10 dark:bg-background/55"

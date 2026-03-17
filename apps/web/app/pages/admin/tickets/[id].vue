@@ -75,7 +75,7 @@
           <CardContent>
             <ConversationThread
               :messages="localMessages"
-              :current-user-id="currentUser?.id ?? ''"
+              :current-user-id="adminViewer.id"
               include-internal
             />
           </CardContent>
@@ -143,11 +143,11 @@ import {
   getMessagesForTicket,
   getTicketById,
   getUserById,
+  previewAdminUser,
 } from '@/lib/mock-data';
 
 definePageMeta({
   layout: 'admin',
-  middleware: 'auth',
 });
 
 const route = useRoute();
@@ -161,20 +161,19 @@ useHead({
   title: activeTicket.subject,
 });
 
-const { currentUser } = useMockAuth();
-
+const adminViewer = previewAdminUser;
 const currentStatus = ref(activeTicket.status);
 const internalNote = ref(false);
 const draft = ref('');
 const localMessages = ref([...getMessagesForTicket(activeTicket.id)]);
 
 const sendReply = () => {
-  if (!draft.value.trim() || !currentUser.value) return;
+  if (!draft.value.trim()) return;
 
   localMessages.value.push({
     id: `local-${Date.now()}`,
     ticketId: activeTicket.id,
-    authorId: currentUser.value.id,
+    authorId: adminViewer.id,
     body: draft.value.trim(),
     createdAt: new Date().toISOString(),
     internal: internalNote.value,

@@ -1,5 +1,5 @@
 <template>
-  <Card class="app-surface overflow-hidden border-border/70 dark:border-white/10">
+  <Card class="app-surface overflow-hidden border-border/70 py-0 dark:border-white/10">
     <CardContent class="space-y-8 p-6 md:p-8">
       <div class="space-y-3">
         <div
@@ -8,49 +8,21 @@
           Sign in
         </div>
         <div class="space-y-2">
-          <h1 class="text-3xl font-semibold tracking-[-0.05em]">Preview the product surfaces</h1>
+          <h1 class="text-3xl font-semibold tracking-[-0.05em]">Sign in to AssetFlow</h1>
           <p class="text-sm leading-6 text-muted-foreground">
-            Authentication is mocked for this phase. Use one of the demo accounts or submit the form
-            with one of the listed emails.
+            Backend auth is now wired in. The dashboards still render preview data while the real
+            frontend session flow is being built out.
           </p>
         </div>
       </div>
 
-      <div class="grid gap-3 md:grid-cols-2">
-        <button
-          class="rounded-3xl border border-border/70 bg-card/80 p-4 text-left transition hover:border-primary/35 hover:bg-primary/7 dark:bg-background/70 dark:hover:bg-primary/5"
-          @click="handleDemo('ADMIN')"
-        >
-          <div class="mb-3 inline-flex rounded-2xl bg-primary/15 p-2 text-primary">
-            <ShieldCheck class="size-4" />
-          </div>
-          <p class="font-semibold">Admin demo</p>
-          <p class="mt-1 text-sm text-muted-foreground">
-            Bird's-eye dashboard, all users, all assets, all tickets.
-          </p>
-        </button>
-        <button
-          class="rounded-3xl border border-border/70 bg-card/80 p-4 text-left transition hover:border-primary/35 hover:bg-primary/7 dark:bg-background/70 dark:hover:bg-primary/5"
-          @click="handleDemo('USER')"
-        >
-          <div class="mb-3 inline-flex rounded-2xl bg-chart-2/20 p-2 text-chart-2">
-            <UserRound class="size-4" />
-          </div>
-          <p class="font-semibold">User demo</p>
-          <p class="mt-1 text-sm text-muted-foreground">
-            Personal assets, renewal visibility, and support threads.
-          </p>
-        </button>
-      </div>
-
       <form class="space-y-5" @submit.prevent="handleSubmit">
         <div class="space-y-2">
-          <Label for="email">Email</Label>
+          <Label for="username">Username</Label>
           <Input
-            id="email"
-            v-model="form.email"
-            type="email"
-            placeholder="you@company.com"
+            id="username"
+            v-model="form.username"
+            placeholder="your.username"
             class="h-12 rounded-2xl"
           />
         </div>
@@ -69,12 +41,10 @@
               id="password"
               v-model="form.password"
               type="password"
+              placeholder="Password"
               class="h-12 rounded-2xl pl-11"
             />
           </div>
-          <p class="text-xs text-muted-foreground">
-            Demo password: <span class="font-semibold text-foreground">{{ demoPassword }}</span>
-          </p>
         </div>
         <Button
           type="submit"
@@ -85,26 +55,10 @@
         </Button>
       </form>
 
-      <div class="rounded-3xl border border-border/70 bg-muted/55 p-4 dark:bg-background/55">
-        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Demo emails
-        </p>
-        <div class="mt-3 grid gap-2 text-sm">
-          <div
-            v-for="account in demoAccounts"
-            :key="account.email"
-            class="flex items-center justify-between rounded-2xl border border-border/70 bg-card/85 px-3 py-2 dark:border-white/10 dark:bg-background/70"
-          >
-            <span>{{ account.email }}</span>
-            <StatusBadge :status="account.role" />
-          </div>
-        </div>
-      </div>
-
       <p class="text-center text-sm text-muted-foreground">
-        Need a fresh preview account?
+        New to assetFlow?
         <NuxtLink to="/register" class="font-semibold text-primary hover:underline"
-          >Create a mocked user session</NuxtLink
+          >Create account</NuxtLink
         >
       </p>
     </CardContent>
@@ -112,50 +66,48 @@
 </template>
 
 <script setup lang="ts">
-import { LockKeyhole, ShieldCheck, UserRound } from 'lucide-vue-next';
+import { LockKeyhole } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
-import { demoAccounts, demoPassword } from '@/lib/mock-data';
 
 definePageMeta({
   layout: 'public',
-  middleware: 'auth',
 });
 
 useHead({
   title: 'Login',
 });
 
-const { signIn, signInDemo } = useMockAuth();
-const defaultDemoEmail = demoAccounts.find((account) => account.role === 'USER')?.email ?? '';
+const { login } = useAuth();
 
 const form = reactive({
-  email: defaultDemoEmail,
-  password: demoPassword,
+  username: '',
+  password: '',
 });
 
 const pending = ref(false);
 
 const handleSubmit = async () => {
-  pending.value = true;
-
-  const result = await signIn(form.email);
-
-  pending.value = false;
-
-  if (!result.ok) {
-    toast.error('Demo account not found', {
-      description: result.message,
-    });
+  if (!form.username.trim() || !form.password.trim()) {
+    toast.error('Enter your username and password.');
     return;
   }
 
-  toast.success(`Signed in as ${result.user.name}`);
-  await navigateTo(result.user.role === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard');
-};
+  pending.value = true;
 
-const handleDemo = async (role: 'ADMIN' | 'USER') => {
-  const user = await signInDemo(role);
-  toast.success(`Loaded ${user.role === 'ADMIN' ? 'admin' : 'user'} workspace`);
-  await navigateTo(role === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard');
+  try {
+    const user = await login({
+      username: form.username.trim(),
+      password: form.password,
+    });
+
+    toast.success(`Signed in as ${user.username}`);
+    await navigateTo(user.role === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard');
+  } catch {
+    toast.error('Unable to sign in', {
+      description: 'Check your username and password and try again.',
+    });
+  } finally {
+    pending.value = false;
+  }
 };
 </script>

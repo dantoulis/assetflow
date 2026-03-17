@@ -46,7 +46,6 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'public',
-  middleware: 'auth',
 });
 
 useHead({

@@ -7,13 +7,13 @@
       >
         <Avatar class="size-9 border border-white/10">
           <AvatarFallback class="bg-primary/15 font-semibold text-primary">
-            {{ currentUser?.initials }}
+            {{ menuUser.initials }}
           </AvatarFallback>
         </Avatar>
         <div class="hidden text-left md:block">
-          <p class="text-sm font-semibold leading-none">{{ currentUser?.name }}</p>
+          <p class="text-sm font-semibold leading-none">{{ menuUser.name }}</p>
           <p class="mt-1 text-xs text-muted-foreground">
-            {{ currentUser?.role === 'ADMIN' ? 'Admin demo' : 'User demo' }}
+            {{ isAuthenticated ? 'Authenticated session' : 'Preview data mode' }}
           </p>
         </div>
       </Button>
@@ -21,58 +21,71 @@
     <DropdownMenuContent align="end" class="w-64 rounded-2xl">
       <DropdownMenuLabel class="pb-2">
         <div class="space-y-1">
-          <p class="font-semibold">{{ currentUser?.name }}</p>
-          <p class="text-xs font-normal text-muted-foreground">{{ currentUser?.email }}</p>
+          <p class="font-semibold">{{ menuUser.name }}</p>
+          <p class="text-xs font-normal text-muted-foreground">{{ menuUser.email }}</p>
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
-      <DropdownMenuItem class="gap-2" @click="switchRole('ADMIN')">
-        <ShieldCheck class="size-4 text-muted-foreground" />
-        <span>Switch to admin demo</span>
-      </DropdownMenuItem>
-      <DropdownMenuItem class="gap-2" @click="switchRole('USER')">
-        <UserRound class="size-4 text-muted-foreground" />
-        <span>Switch to user demo</span>
-      </DropdownMenuItem>
       <DropdownMenuItem
         class="gap-2"
-        @click="toast.message('Backend wiring is intentionally disabled for this phase.')"
+        @click="
+          toast.message(
+            isAuthenticated
+              ? 'Backend auth is active while the dashboards still render preview data.'
+              : 'Route access is open while the real auth flow is being wired.',
+          )
+        "
       >
-        <ArrowRightLeft class="size-4 text-muted-foreground" />
-        <span>Mock data only</span>
+        <ShieldCheck class="size-4 text-muted-foreground" />
+        <span>{{ isAuthenticated ? 'Signed in' : 'Preview mode' }}</span>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem
+        v-if="isAuthenticated"
         class="gap-2 text-destructive focus:text-destructive"
         @click="handleSignOut"
       >
         <LogOut class="size-4" />
         <span>Sign out</span>
       </DropdownMenuItem>
+      <DropdownMenuItem v-else class="gap-2" @click="navigateTo('/login')">
+        <LogIn class="size-4 text-muted-foreground" />
+        <span>Go to login</span>
+      </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 </template>
 
 <script setup lang="ts">
-import { ArrowRightLeft, LogOut, ShieldCheck, UserRound } from 'lucide-vue-next';
+import { LogIn, LogOut, ShieldCheck } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
+import { getUserByEmail, previewAdminUser, previewUser } from '@/lib/mock-data';
 
-const { currentUser, signInDemo, signOut } = useMockAuth();
+const route = useRoute();
+const { currentUser, isAuthenticated, logout } = useAuth();
 
-const switchRole = async (role: 'ADMIN' | 'USER') => {
-  const user = await signInDemo(role);
-  toast.success(`Switched to ${user.name}`, {
-    description:
-      role === 'ADMIN'
-        ? 'Admin workspace loaded with global controls.'
-        : 'User workspace loaded with personal assets only.',
-  });
-  await navigateTo(role === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard');
-};
+const previewContextUser = computed(() => {
+  return route.path.startsWith('/admin') ? previewAdminUser : previewUser;
+});
+
+const menuUser = computed(() => {
+  if (!currentUser.value) return previewContextUser.value;
+
+  const matchedUser = getUserByEmail(currentUser.value.email);
+
+  if (matchedUser) return matchedUser;
+
+  return {
+    initials: currentUser.value.username.slice(0, 2).toUpperCase(),
+    name: currentUser.value.username,
+    email: currentUser.value.email,
+    role: currentUser.value.role,
+  };
+});
 
 const handleSignOut = async () => {
-  signOut();
-  toast.message('Demo session cleared');
+  await logout();
+  toast.success('Signed out');
   await navigateTo('/login');
 };
 </script>

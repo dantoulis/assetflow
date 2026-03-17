@@ -33,7 +33,7 @@ const props = withDefaults(
   },
 );
 
-const { homePath, isAuthenticated } = useMockAuth();
+const { homePath, isAuthenticated } = useAuth();
 
 const destination = computed(() => (isAuthenticated.value ? homePath.value : '/login'));
 </script>

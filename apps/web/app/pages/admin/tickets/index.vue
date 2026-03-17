@@ -96,7 +96,6 @@ import { formatRelativeDate, getUserById, mockAssets, mockTickets } from '@/lib/
 
 definePageMeta({
   layout: 'admin',
-  middleware: 'auth',
 });
 
 useHead({

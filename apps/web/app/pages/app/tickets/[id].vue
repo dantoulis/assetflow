@@ -77,25 +77,26 @@
 <script setup lang="ts">
 import { MessageSquareReply, Sparkles } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
-import { formatRelativeDate, getMessagesForTicket, getTicketById } from '@/lib/mock-data';
+import {
+  formatRelativeDate,
+  getMessagesForTicket,
+  getTicketById,
+  previewUser,
+} from '@/lib/mock-data';
 
 definePageMeta({
   layout: 'user',
-  middleware: 'auth',
 });
 
-const { currentUser } = useMockAuth();
-
-if (!currentUser.value) throw createError({ statusCode: 401, statusMessage: 'Missing session' });
+const viewer = previewUser;
 
 const route = useRoute();
 const ticket = getTicketById(route.params.id as string);
 
-if (!ticket || ticket.userId !== currentUser.value.id)
+if (!ticket || ticket.userId !== viewer.id)
   throw createError({ statusCode: 404, statusMessage: 'Ticket not found' });
 
 const activeTicket = ticket;
-const viewer = currentUser.value;
 
 useHead({
   title: activeTicket.subject,

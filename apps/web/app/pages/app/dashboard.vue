@@ -134,22 +134,19 @@ import {
   formatRelativeDate,
   getAssetsForUser,
   getRecurringMonthlySpend,
+  previewUser,
 } from '@/lib/mock-data';
 
 definePageMeta({
   layout: 'user',
-  middleware: 'auth',
 });
-
-const { currentUser } = useMockAuth();
-
-if (!currentUser.value) throw createError({ statusCode: 401, statusMessage: 'Missing session' });
 
 useHead({
   title: 'My Dashboard',
 });
 
-const dashboard = buildUserDashboard(currentUser.value.id);
+const viewer = previewUser;
+const dashboard = buildUserDashboard(viewer.id);
 const metricIcons = [Boxes, TimerReset, MessageSquareMore, CreditCard];
-const recurringSpend = getRecurringMonthlySpend(getAssetsForUser(currentUser.value.id));
+const recurringSpend = getRecurringMonthlySpend(getAssetsForUser(viewer.id));
 </script>

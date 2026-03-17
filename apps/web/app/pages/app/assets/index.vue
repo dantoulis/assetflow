@@ -87,20 +87,16 @@ import {
   formatRelativeDate,
   getAssetsForUser,
   getRecurringMonthlySpend,
+  previewUser,
 } from '@/lib/mock-data';
 
 definePageMeta({
   layout: 'user',
-  middleware: 'auth',
 });
-
-const { currentUser } = useMockAuth();
-
-if (!currentUser.value) throw createError({ statusCode: 401, statusMessage: 'Missing session' });
 
 useHead({
   title: 'My Assets',
 });
 
-const assets = getAssetsForUser(currentUser.value.id);
+const assets = getAssetsForUser(previewUser.id);
 </script>
