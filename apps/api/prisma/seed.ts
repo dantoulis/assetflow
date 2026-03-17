@@ -3,10 +3,12 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { faker } from '@faker-js/faker';
 import { getDatabaseUrl } from '../src/common/utils';
+import * as bcrypt from 'bcrypt';
 
 const connectionString = getDatabaseUrl();
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
+const saltOrRounds = 10;
 
 const main = async () => {
   const makeAsset = () => {
@@ -21,7 +23,7 @@ const main = async () => {
       data: {
         email: faker.internet.email(),
         username: faker.internet.username(),
-        password: 'user',
+        password: await bcrypt.hash('user', saltOrRounds),
         role: 'USER',
         assets: {
           create: Array.from({ length: 5 }, () => makeAsset()),
@@ -34,7 +36,7 @@ const main = async () => {
     data: {
       email: faker.internet.email(),
       username: faker.internet.username(),
-      password: 'admin',
+      password: await bcrypt.hash('admin', saltOrRounds),
       role: 'ADMIN',
       assets: {
         create: [],
@@ -42,7 +44,6 @@ const main = async () => {
     },
   });
   const users = await Promise.all(Array.from({ length: 5 }, () => makeUser()));
-  console.log({ admin, users });
 };
 
 main()
