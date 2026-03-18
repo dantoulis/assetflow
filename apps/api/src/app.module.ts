@@ -6,10 +6,11 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AssetsModule } from './assets/assets.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
-  exports: [UsersModule],
-  imports: [PrismaModule, AssetsModule, UsersModule, AuthModule],
+  exports: [UsersModule, TicketsModule],
+  imports: [PrismaModule, AssetsModule, UsersModule, AuthModule, TicketsModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -11,6 +11,9 @@ export class CreateAssetDto {
   @IsEnum(AssetStatus)
   readonly status!: AssetStatus;
 
+  @IsInt()
+  readonly userId!: number;
+
   @IsString()
   readonly vendor!: string;
 
@@ -49,7 +52,4 @@ export class CreateAssetDto {
   @IsArray()
   @IsString({ each: true })
   readonly tags?: string[];
-
-  @IsInt()
-  readonly userId!: number;
 }
