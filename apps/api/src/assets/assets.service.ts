@@ -48,7 +48,7 @@ export class AssetService {
     const isAdmin = requestingUser.role === Role.ADMIN;
     const isAssetOwner = requestingUser.sub === asset.userId;
 
-    if (!isAssetOwner || !isAdmin) {
+    if (!isAssetOwner && !isAdmin) {
       throw new ForbiddenException('You are not allowed to access this asset');
     }
 

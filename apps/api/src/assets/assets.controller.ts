@@ -31,6 +31,7 @@ export class AssetController {
     return this.assetService.findOne(id, request);
   }
 
+  @Roles([Role.ADMIN])
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
