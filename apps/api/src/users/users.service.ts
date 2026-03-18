@@ -73,6 +73,18 @@ export class UsersService {
   }
 
   async updateRole(id: number, updateUserRoleDto: UpdateUserRoleDto): Promise<SafeUser> {
+    const userToUpdate = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!userToUpdate) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (userToUpdate.role === Role.ADMIN && updateUserRoleDto.role !== Role.ADMIN) {
+      throw new ForbiddenException('Admin accounts cannot be demoted');
+    }
+
     return await this.prisma.user.update({
       where: { id },
       data: updateUserRoleDto,
