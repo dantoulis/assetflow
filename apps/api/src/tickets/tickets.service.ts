@@ -68,27 +68,7 @@ export class TicketsService {
   }
 
   async findOne(id: number, request: AuthenticatedRequest): Promise<Ticket> {
-    const requestingUser = request.user;
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id },
-    });
-
-    if (!ticket) {
-      throw new NotFoundException('Ticket not found');
-    }
-
-    if (!requestingUser) {
-      throw new UnauthorizedException();
-    }
-
-    const isAdmin = requestingUser.role === Role.ADMIN;
-    const isTicketOwner = requestingUser.sub === ticket.requesterId;
-
-    if (!isTicketOwner && !isAdmin) {
-      throw new ForbiddenException('You are not allowed to access this ticket');
-    }
-
-    return ticket;
+    return this.findAccessibleTicket(id, request);
   }
 
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
@@ -107,6 +87,14 @@ export class TicketsService {
   }
 
   async remove(id: number, request: AuthenticatedRequest): Promise<Ticket> {
+    await this.findAccessibleTicket(id, request);
+
+    return this.prisma.ticket.delete({
+      where: { id },
+    });
+  }
+
+  async findAccessibleTicket(id: number, request: AuthenticatedRequest): Promise<Ticket> {
     const user = request.user;
     const ticket = await this.prisma.ticket.findUnique({
       where: { id },
@@ -127,8 +115,6 @@ export class TicketsService {
       throw new ForbiddenException('You are not allowed to access this ticket');
     }
 
-    return this.prisma.ticket.delete({
-      where: { id },
-    });
+    return ticket;
   }
 }

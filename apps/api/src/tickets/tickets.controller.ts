@@ -9,16 +9,21 @@ import {
   Req,
   ParseIntPipe,
 } from '@nestjs/common';
+import { TicketMessagesService } from './ticket-messages.service';
 import { TicketsService } from './tickets.service';
 import { Roles } from '../decorators/roles.decorator';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { CreateTicketMessageDto } from './dto/create-ticket-message.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import type { AuthenticatedRequest } from '../auth/types';
-import { Ticket, Role } from '../generated/prisma/client';
+import { Ticket, TicketMessage, Role } from '../generated/prisma/client';
 
 @Controller('tickets')
 export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) {}
+  constructor(
+    private readonly ticketsService: TicketsService,
+    private readonly ticketMessagesService: TicketMessagesService,
+  ) {}
 
   @Post()
   async create(
@@ -39,6 +44,23 @@ export class TicketsController {
     @Req() request: AuthenticatedRequest,
   ): Promise<Ticket> {
     return this.ticketsService.findOne(id, request);
+  }
+
+  @Get(':id/messages')
+  async findMessages(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<TicketMessage[]> {
+    return this.ticketMessagesService.findMessages(id, request);
+  }
+
+  @Post(':id/messages')
+  async createMessage(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createTicketMessageDto: CreateTicketMessageDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<TicketMessage> {
+    return this.ticketMessagesService.createMessage(id, createTicketMessageDto, request);
   }
 
   @Roles([Role.ADMIN])
