@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
@@ -59,6 +59,18 @@ export class UsersService {
   }
 
   async remove(id: number): Promise<SafeUser> {
+    const userToRemove = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!userToRemove) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (userToRemove.role === Role.ADMIN) {
+      throw new ForbiddenException('An admin cannot remove another admin');
+    }
+
     return await this.prisma.user.delete({
       where: { id },
       omit: { password: true },

@@ -5,7 +5,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import type { SafeUser } from './types';
+import { Role } from '../generated/prisma/enums';
+import { Roles } from '../decorators/roles.decorator';
 
+@Roles([Role.ADMIN])
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

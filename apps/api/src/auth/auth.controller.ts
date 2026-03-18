@@ -16,7 +16,7 @@ import { ACCESS_TOKEN_COOKIE, ACCESS_TOKEN_TTL_MS } from './auth.constants';
 import type { SafeUser } from '../users/types';
 import type { AuthenticatedRequest } from './types';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { Public } from './public.decorator';
+import { Public } from '../decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {

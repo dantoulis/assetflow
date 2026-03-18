@@ -4,7 +4,10 @@ import { CreateAssetDto } from './dto/create-asset.dto';
 import { UpdateAssetDto } from './dto/update-asset.dto';
 import { ParseIntPipe } from '@nestjs/common';
 import type { Asset } from '../generated/prisma/client';
+import { Roles } from '../decorators/roles.decorator';
+import { Role } from '../generated/prisma/enums';
 
+@Roles([Role.ADMIN])
 @Controller('assets')
 export class AssetController {
   constructor(private readonly assetService: AssetService) {}
