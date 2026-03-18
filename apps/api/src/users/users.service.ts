@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import type { SafeUser } from './types';
 import { Role, User } from '../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
+import type { AuthenticatedRequest } from '../auth/types';
 
 @Injectable()
 export class UsersService {
@@ -42,8 +43,29 @@ export class UsersService {
     });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<SafeUser> {
-    return await this.prisma.user.update({
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    request: AuthenticatedRequest,
+  ): Promise<SafeUser> {
+    const userToUpdate = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    const requestingUser = request.user;
+
+    if (!requestingUser) {
+      throw new ForbiddenException('You are not authorized to access this resource');
+    }
+
+    if (!userToUpdate) {
+      throw new NotFoundException('User to update not found');
+    }
+
+    if (requestingUser.role !== Role.ADMIN && requestingUser.sub !== id) {
+      throw new ForbiddenException('You cannot update another user');
+    }
+
+    return this.prisma.user.update({
       where: { id },
       data: updateUserDto,
       omit: { password: true },

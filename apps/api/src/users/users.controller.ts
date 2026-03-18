@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { ParseIntPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -7,6 +7,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import type { SafeUser } from './types';
 import { Role } from '../generated/prisma/enums';
 import { Roles } from '../decorators/roles.decorator';
+import type { AuthenticatedRequest } from '../auth/types';
 
 @Roles([Role.ADMIN])
 @Controller('users')
@@ -32,8 +33,9 @@ export class UsersController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<SafeUser | null> {
-    return this.usersService.update(id, updateUserDto);
+    @Req() request: AuthenticatedRequest,
+  ): Promise<SafeUser> {
+    return this.usersService.update(id, updateUserDto, request);
   }
 
   @Delete(':id')
