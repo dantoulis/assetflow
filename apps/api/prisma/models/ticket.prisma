@@ -1,0 +1,58 @@
+model Ticket {
+  id              Int            @id @default(autoincrement())
+  subject         String
+  category        TicketCategory
+  status          TicketStatus   @default(OPEN)
+  priority        TicketPriority @default(MEDIUM)
+  requesterId     Int
+  assetId         Int?
+  assignedAdminId Int?
+  resolvedAt      DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  requester     User            @relation("TicketRequester", fields: [requesterId], references: [id])
+  asset         Asset?          @relation(fields: [assetId], references: [id])
+  assignedAdmin User?           @relation("TicketAssignee", fields: [assignedAdminId], references: [id])
+  messages      TicketMessage[]
+
+  @@index([requesterId, status])
+  @@index([assignedAdminId, status])
+  @@index([assetId])
+}
+
+model TicketMessage {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
+  body      String   @db.Text
+  internal  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation("MessageAuthor", fields: [authorId], references: [id])
+
+  @@index([ticketId, createdAt])
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING_ADMIN
+  PENDING_USER
+  RESOLVED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TicketCategory {
+  SUBSCRIPTION
+  HARDWARE
+  ACCESS
+  BILLING
+  OTHER
+}

@@ -1,0 +1,27 @@
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  username    String    @unique
+  password    String
+  name        String?
+  role        Role      @default(USER)
+  phone       String?
+  team        String?
+  location    String?
+  joinedAt    DateTime  @default(now())
+  suspendedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  assets                Asset[]
+  requestedTickets      Ticket[]        @relation("TicketRequester")
+  assignedTickets       Ticket[]        @relation("TicketAssignee")
+  ticketMessages        TicketMessage[] @relation("MessageAuthor")
+  assetRequests         AssetRequest[]  @relation("AssetRequestRequester")
+  reviewedAssetRequests AssetRequest[]  @relation("AssetRequestReviewer")
+}
+
+enum Role {
+  USER
+  ADMIN
+}

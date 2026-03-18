@@ -4,7 +4,7 @@ import { defineConfig } from 'prisma/config';
 import { getDatabaseUrl } from './src/common/utils';
 
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
+  schema: 'prisma/',
   migrations: {
     path: 'prisma/migrations',
     seed: 'yarn exec tsx prisma/seed.ts',

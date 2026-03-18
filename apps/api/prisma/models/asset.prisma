@@ -1,0 +1,77 @@
+model Asset {
+  id           Int           @id @default(autoincrement())
+  title        String
+  type         AssetType
+  status       AssetStatus   @default(ACTIVE)
+  vendor       String
+  reference    String        @unique
+  billingCycle BillingCycle?
+  purchasedAt  DateTime?
+  assignedAt   DateTime?
+  renewalAt    DateTime?
+  expiresAt    DateTime?
+  seatCount    Int?
+  notes        String?       @db.Text
+  tags         String[]      @default([])
+  userId       Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  owner             User           @relation(fields: [userId], references: [id])
+  tickets           Ticket[]
+  fulfilledRequests AssetRequest[] @relation("FulfilledAsset")
+
+  @@index([userId])
+  @@index([status, type])
+  @@index([renewalAt])
+  @@index([expiresAt])
+}
+
+model AssetRequest {
+  id               Int                @id @default(autoincrement())
+  requesterId      Int
+  reviewedById     Int?
+  fulfilledAssetId Int?
+  title            String
+  assetType        AssetType?
+  vendor           String?
+  justification    String?            @db.Text
+  status           AssetRequestStatus @default(PENDING)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  reviewedAt       DateTime?
+
+  requester      User   @relation("AssetRequestRequester", fields: [requesterId], references: [id])
+  reviewedBy     User?  @relation("AssetRequestReviewer", fields: [reviewedById], references: [id])
+  fulfilledAsset Asset? @relation("FulfilledAsset", fields: [fulfilledAssetId], references: [id])
+
+  @@index([requesterId, status])
+  @@index([reviewedById, status])
+}
+
+enum AssetType {
+  LAPTOP
+  SUBSCRIPTION
+  LICENSE
+  PERIPHERAL
+}
+
+enum AssetStatus {
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+  IN_REPAIR
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+  ONCE
+}
+
+enum AssetRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FULFILLED
+}
