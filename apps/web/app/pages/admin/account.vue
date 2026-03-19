@@ -95,6 +95,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { Boxes, ClipboardList, MessagesSquare } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { formatDate, getDisplayName, getInitials } from '@/lib/app-formatters';
@@ -108,7 +109,10 @@ useHead({
   title: 'Account',
 });
 
-const api = useAssetFlowApi();
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
+const assetRequestsStore = useAssetRequestsStore();
+const usersStore = useUsersStore();
 const { currentUser, refreshSession, setCurrentUser } = useAuth();
 
 if (!currentUser.value) {
@@ -121,17 +125,17 @@ if (!viewer.value) {
   throw createError({ statusCode: 401, statusMessage: 'Authentication required' });
 }
 
-const [assets, tickets, assetRequests] = await Promise.all([
-  api.fetchAssets(),
-  api.fetchTickets(),
-  api.fetchAssetRequests(),
-]);
+await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll(), assetRequestsStore.fetchAll()]);
+
+const { assets } = storeToRefs(assetsStore);
+const { tickets } = storeToRefs(ticketsStore);
+const { requests: assetRequests } = storeToRefs(assetRequestsStore);
 
 const assignedTickets = computed(() =>
-  tickets.filter((ticket) => ticket.assignedAdminId === viewer.value?.id),
+  tickets.value.filter((ticket) => ticket.assignedAdminId === viewer.value?.id),
 );
 const reviewedRequests = computed(() =>
-  assetRequests.filter((request) => request.reviewedById === viewer.value?.id),
+  viewer.value ? assetRequestsStore.byReviewerId(viewer.value.id) : [],
 );
 const displayName = computed(() => getDisplayName(viewer.value));
 const initials = computed(() => getInitials(viewer.value));
@@ -143,7 +147,7 @@ const handleSubmit = async (payload: UserUpdatePayload) => {
   saving.value = true;
 
   try {
-    const updatedUser = await api.updateUser(viewer.value.id, payload);
+    const updatedUser = await usersStore.updateUser(viewer.value.id, payload);
     setCurrentUser(updatedUser);
     toast.success('Account updated');
   } catch {

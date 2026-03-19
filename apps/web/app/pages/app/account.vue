@@ -95,6 +95,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { ClipboardList, FolderKanban, MessagesSquare } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { formatDate, getDisplayName, getInitials } from '@/lib/app-formatters';
@@ -108,7 +109,10 @@ useHead({
   title: 'Account',
 });
 
-const api = useAssetFlowApi();
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
+const assetRequestsStore = useAssetRequestsStore();
+const usersStore = useUsersStore();
 const { currentUser, refreshSession, setCurrentUser } = useAuth();
 
 if (!currentUser.value) {
@@ -121,13 +125,11 @@ if (!viewer.value) {
   throw createError({ statusCode: 401, statusMessage: 'Authentication required' });
 }
 
-const [assets, tickets, assetRequests] = await Promise.all([
-  api.fetchAssets(),
-  api.fetchTickets(),
-  api.fetchAssetRequests(),
-]);
+await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll(), assetRequestsStore.fetchAll()]);
 
-const openTickets = computed(() => tickets.filter((ticket) => ticket.status !== 'RESOLVED'));
+const { assets } = storeToRefs(assetsStore);
+const { openTickets } = storeToRefs(ticketsStore);
+const { requests: assetRequests } = storeToRefs(assetRequestsStore);
 const displayName = computed(() => getDisplayName(viewer.value));
 const initials = computed(() => getInitials(viewer.value));
 const saving = ref(false);
@@ -138,7 +140,7 @@ const handleSubmit = async (payload: UserUpdatePayload) => {
   saving.value = true;
 
   try {
-    const updatedUser = await api.updateUser(viewer.value.id, payload);
+    const updatedUser = await usersStore.updateUser(viewer.value.id, payload);
     setCurrentUser(updatedUser);
     toast.success('Account updated');
   } catch {

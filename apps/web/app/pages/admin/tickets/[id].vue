@@ -147,6 +147,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { ShieldCheck } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import {
@@ -155,13 +156,7 @@ import {
   getInitials,
   humanizeEnum,
 } from '@/lib/app-formatters';
-import type {
-  AppTicket,
-  AppTicketMessage,
-  AppUser,
-  TicketPriority,
-  TicketStatus,
-} from '@/lib/app-types';
+import type { AppTicketMessage, TicketPriority, TicketStatus } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -169,7 +164,9 @@ definePageMeta({
 
 const route = useRoute();
 const ticketId = Number(route.params.id);
-const api = useAssetFlowApi();
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
+const usersStore = useUsersStore();
 const { currentUser, refreshSession } = useAuth();
 
 if (!currentUser.value) {
@@ -182,15 +179,19 @@ if (!viewer) {
   throw createError({ statusCode: 401, statusMessage: 'Authentication required' });
 }
 
-const [ticketData, users, assets, messagesData] = await Promise.all([
-  api.fetchTicket(ticketId),
-  api.fetchUsers(),
-  api.fetchAssets(),
-  api.fetchTicketMessages(ticketId),
+const ticketData = await ticketsStore.fetchOne(ticketId);
+
+await Promise.all([
+  usersStore.fetchAll(),
+  assetsStore.fetchAll(),
+  ticketsStore.fetchMessages(ticketId),
 ]);
 
-const ticket = ref<AppTicket>(ticketData);
-const messages = ref<AppTicketMessage[]>(messagesData);
+const { byId: userMap } = storeToRefs(usersStore);
+const { assets } = storeToRefs(assetsStore);
+const { byId: ticketMap, messagesByTicketId } = storeToRefs(ticketsStore);
+const ticket = computed(() => ticketMap.value[ticketId] ?? ticketData);
+const messages = computed<AppTicketMessage[]>(() => messagesByTicketId.value[ticketId] ?? []);
 const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESOLVED'];
 const priorities: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
 const statusOptions = statuses.map((status) => ({
@@ -214,10 +215,6 @@ const reviewForm = reactive({
 useHead({
   title: ticket.value.subject,
 });
-
-const userMap = computed(
-  () => Object.fromEntries(users.map((user) => [user.id, user])) as Record<number, AppUser>,
-);
 
 const authors = computed(() => {
   const requester = userMap.value[ticket.value.requesterId];
@@ -256,13 +253,12 @@ const assignedAdminName = computed(() =>
     : 'Unassigned',
 );
 const assetTitle = computed(
-  () => assets.find((asset) => asset.id === ticket.value.assetId)?.title ?? 'General request',
+  () => assets.value.find((asset) => asset.id === ticket.value.assetId)?.title ?? 'General request',
 );
 const isResolved = computed(() => ticket.value.status === 'RESOLVED');
 
 const refreshTicketState = async () => {
-  ticket.value = await api.fetchTicket(ticketId);
-  messages.value = await api.fetchTicketMessages(ticketId);
+  await ticketsStore.refreshThread(ticketId);
   reviewForm.status = ticket.value.status;
   reviewForm.priority = ticket.value.priority;
 };
@@ -271,7 +267,7 @@ const saveReview = async () => {
   savingReview.value = true;
 
   try {
-    ticket.value = await api.updateTicket(ticketId, {
+    await ticketsStore.updateTicket(ticketId, {
       status: reviewForm.status,
       priority: reviewForm.priority,
       assignedAdminId: viewer.id,
@@ -291,7 +287,7 @@ const sendReply = async () => {
   sending.value = true;
 
   try {
-    await api.createTicketMessage(ticketId, {
+    await ticketsStore.sendMessage(ticketId, {
       body: draft.value.trim(),
       internal: internalNote.value,
     });

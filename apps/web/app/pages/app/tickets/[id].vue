@@ -80,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { toast } from 'vue-sonner';
 import {
   formatRelativeDate,
@@ -95,7 +96,8 @@ definePageMeta({
 
 const route = useRoute();
 const ticketId = Number(route.params.id);
-const api = useAssetFlowApi();
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
 const { currentUser, refreshSession } = useAuth();
 
 if (!currentUser.value) {
@@ -111,14 +113,20 @@ if (!viewer) {
 let ticketValue: AppTicket;
 
 try {
-  ticketValue = await api.fetchTicket(ticketId);
+  ticketValue = await ticketsStore.fetchOne(ticketId);
 } catch {
   throw createError({ statusCode: 404, statusMessage: 'Ticket not found' });
 }
 
-const ticket = ref(ticketValue);
-const asset = ticket.value.assetId ? await api.fetchAsset(ticket.value.assetId) : null;
-const messages = ref<AppTicketMessage[]>(await api.fetchTicketMessages(ticketId));
+if (ticketValue.assetId) {
+  await assetsStore.fetchOne(ticketValue.assetId);
+}
+
+await ticketsStore.fetchMessages(ticketId);
+
+const { byId: ticketMap, messagesByTicketId } = storeToRefs(ticketsStore);
+const ticket = computed<AppTicket>(() => ticketMap.value[ticketId] ?? ticketValue);
+const messages = computed<AppTicketMessage[]>(() => messagesByTicketId.value[ticketId] ?? []);
 const draft = ref('');
 const sending = ref(false);
 
@@ -145,13 +153,8 @@ const authors = computed(() => {
   };
 });
 
-const assetTitle = computed(() => asset?.title ?? 'General request');
+const assetTitle = computed(() => assetsStore.titleFor(ticket.value.assetId));
 const isResolved = computed(() => ticket.value.status === 'RESOLVED');
-
-const refreshTicketState = async () => {
-  ticket.value = await api.fetchTicket(ticketId);
-  messages.value = await api.fetchTicketMessages(ticketId);
-};
 
 const sendReply = async () => {
   if (!draft.value.trim() || isResolved.value) return;
@@ -159,10 +162,9 @@ const sendReply = async () => {
   sending.value = true;
 
   try {
-    await api.createTicketMessage(ticketId, {
+    await ticketsStore.sendMessage(ticketId, {
       body: draft.value.trim(),
     });
-    await refreshTicketState();
     draft.value = '';
     toast.success('Reply sent');
   } catch {

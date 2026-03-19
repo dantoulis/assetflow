@@ -221,10 +221,6 @@ import {
   buildDailySeriesForRange,
   buildHourlySeriesForDay,
   buildMonthlySeriesForRange,
-  buildStatusDistribution,
-  buildTypeDistribution,
-  getOpenTickets,
-  getRenewingAssets,
 } from '@/lib/app-analytics';
 import {
   formatDate,
@@ -248,7 +244,9 @@ useHead({
   title: 'My Dashboard',
 });
 
-const api = useAssetFlowApi();
+const assetsStore = useAssetsStore();
+const assetRequestsStore = useAssetRequestsStore();
+const ticketsStore = useTicketsStore();
 const { currentUser, refreshSession } = useAuth();
 
 if (!currentUser.value) {
@@ -261,32 +259,20 @@ if (!viewer.value) {
   throw createError({ statusCode: 401, statusMessage: 'Authentication required' });
 }
 
-const [assets, tickets, requests] = await Promise.all([
-  api.fetchAssets(),
-  api.fetchTickets(),
-  api.fetchAssetRequests(),
-]);
+const viewerId = viewer.value.id;
+
+await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll(), assetRequestsStore.fetchAll()]);
 
 const metricIcons = [Boxes, TimerReset, MessageSquareMore, ClipboardList];
 const displayName = computed(() => getDisplayName(viewer.value));
-const openTickets = computed(() => getOpenTickets(tickets));
-const pendingRequests = computed(() => requests.filter((request) => request.status === 'PENDING'));
-const renewals = computed(() => getRenewingAssets(assets, 7).slice(0, 4));
-const recentTickets = computed(() =>
-  [...tickets]
-    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
-    .slice(0, 4),
-);
-const recentRequests = computed(() =>
-  [...requests]
-    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
-    .slice(0, 4),
-);
+const renewals = computed(() => assetsStore.urgentRenewals(4, 7));
+const recentTickets = computed(() => ticketsStore.recent(4));
+const recentRequests = computed(() => assetRequestsStore.recentByRequester(viewerId, 4));
 
 const metrics = computed<DashboardMetric[]>(() => [
   {
     label: 'Assigned assets',
-    value: `${assets.length}`,
+    value: `${assetsStore.count}`,
     delta: `${renewals.value.length} due soon`,
     hint: 'Assets currently attached to your account.',
   },
@@ -298,14 +284,14 @@ const metrics = computed<DashboardMetric[]>(() => [
   },
   {
     label: 'Open tickets',
-    value: `${openTickets.value.length}`,
-    delta: `${tickets.filter((ticket) => ticket.status === 'PENDING_USER').length} waiting on you`,
+    value: `${ticketsStore.openTickets.length}`,
+    delta: `${ticketsStore.pendingUserTickets.length} waiting on you`,
     hint: 'Support threads that still need movement.',
   },
   {
     label: 'Pending requests',
-    value: `${pendingRequests.value.length}`,
-    delta: `${requests.filter((request) => request.status === 'FULFILLED').length} fulfilled`,
+    value: `${assetRequestsStore.pendingRequests.length}`,
+    delta: `${assetRequestsStore.countsByStatus.FULFILLED} fulfilled`,
     hint: 'Requests still waiting for review or fulfillment.',
   },
 ]);
@@ -409,14 +395,14 @@ const buildTrendSeries = <T,>(items: T[], getDate: (item: T) => string | null | 
 
 const trendPoints = computed<ChartPoint[]>(() => {
   if (trendMetric.value === 'ASSETS') {
-    return buildTrendSeries(assets, (asset) => asset.assignedAt ?? asset.createdAt);
+    return buildTrendSeries(assetsStore.assets, (asset) => asset.assignedAt ?? asset.createdAt);
   }
 
   if (trendMetric.value === 'REQUESTS') {
-    return buildTrendSeries(requests, (request) => request.createdAt);
+    return buildTrendSeries(assetRequestsStore.requests, (request) => request.createdAt);
   }
 
-  return buildTrendSeries(tickets, (ticket) => ticket.createdAt);
+  return buildTrendSeries(ticketsStore.tickets, (ticket) => ticket.createdAt);
 });
 
 const trendTitle = computed(() => {
@@ -434,7 +420,7 @@ const trendValueLabel = computed(() => {
 const trendTotal = computed(() => {
   if (trendMetric.value === 'ASSETS') {
     return `${countItemsInRange(
-      assets,
+      assetsStore.assets,
       (asset) => asset.assignedAt ?? asset.createdAt,
       resolvedTrendRange.value.start,
       resolvedTrendRange.value.end,
@@ -443,7 +429,7 @@ const trendTotal = computed(() => {
 
   if (trendMetric.value === 'REQUESTS') {
     return `${countItemsInRange(
-      requests,
+      assetRequestsStore.requests,
       (request) => request.createdAt,
       resolvedTrendRange.value.start,
       resolvedTrendRange.value.end,
@@ -451,7 +437,7 @@ const trendTotal = computed(() => {
   }
 
   return `${countItemsInRange(
-    tickets,
+    ticketsStore.tickets,
     (ticket) => ticket.createdAt,
     resolvedTrendRange.value.start,
     resolvedTrendRange.value.end,
@@ -493,18 +479,18 @@ const distributionModeOptions: Array<{
 
 const distributionSegments = computed<DistributionSegment[]>(() => {
   if (distributionMode.value === 'ASSET_STATUS') {
-    return buildStatusDistribution(assets);
+    return assetsStore.statusDistribution;
   }
 
   if (distributionMode.value === 'TICKET_STATUS') {
-    return buildStatusDistribution(tickets);
+    return ticketsStore.statusDistribution;
   }
 
   if (distributionMode.value === 'REQUEST_STATUS') {
-    return buildStatusDistribution(requests);
+    return assetRequestsStore.statusDistribution;
   }
 
-  return buildTypeDistribution(assets);
+  return assetsStore.typeDistribution;
 });
 
 const distributionTitle = computed(() => {
@@ -523,9 +509,9 @@ const distributionCenterLabel = computed(() =>
 );
 const distributionCenterValue = computed(() =>
   distributionMode.value === 'REQUEST_STATUS'
-    ? `${requests.length}`
+    ? `${assetRequestsStore.count}`
     : distributionMode.value === 'TICKET_STATUS'
-      ? `${tickets.length}`
-      : `${assets.length}`,
+      ? `${ticketsStore.count}`
+      : `${assetsStore.count}`,
 );
 </script>

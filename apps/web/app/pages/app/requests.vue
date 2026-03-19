@@ -71,7 +71,7 @@
       </MetricCard>
       <MetricCard
         title="Pending"
-        :value="`${pendingCount}`"
+        :value="`${countsByStatus.PENDING}`"
         delta="Awaiting review"
         hint="Requests the admin team has not decided yet."
         tone="warning"
@@ -80,7 +80,7 @@
       </MetricCard>
       <MetricCard
         title="Fulfilled"
-        :value="`${fulfilledCount}`"
+        :value="`${countsByStatus.FULFILLED}`"
         delta="Delivered"
         hint="Requests already turned into assigned assets."
         tone="success"
@@ -141,6 +141,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { CircleCheckBig, ClipboardList, ClipboardPlus, Clock3 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { formatDate, humanizeEnum } from '@/lib/app-formatters';
@@ -154,9 +155,11 @@ useHead({
   title: 'Requests',
 });
 
-const api = useAssetFlowApi();
+const assetRequestsStore = useAssetRequestsStore();
 
-const requests = ref(await api.fetchAssetRequests());
+await assetRequestsStore.fetchAll();
+
+const { countsByStatus, requests } = storeToRefs(assetRequestsStore);
 const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERAL'];
 const requestTypeOptions = [
   { label: 'No preference', value: 'NONE' },
@@ -170,13 +173,6 @@ const draft = reactive({
   vendor: '',
   justification: '',
 });
-
-const pendingCount = computed(
-  () => requests.value.filter((request) => request.status === 'PENDING').length,
-);
-const fulfilledCount = computed(
-  () => requests.value.filter((request) => request.status === 'FULFILLED').length,
-);
 
 const resetDraft = () => {
   draft.title = '';
@@ -201,8 +197,7 @@ const submitRequest = async () => {
       ...(draft.justification.trim() ? { justification: draft.justification.trim() } : {}),
     };
 
-    const created = await api.createAssetRequest(payload);
-    requests.value = [created, ...requests.value];
+    await assetRequestsStore.createRequest(payload);
     dialogOpen.value = false;
     resetDraft();
     toast.success('Asset request submitted');

@@ -256,6 +256,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { Boxes, ClipboardList, Ticket } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import {
@@ -274,33 +275,29 @@ definePageMeta({
 
 const route = useRoute();
 const userId = Number(route.params.id);
-const api = useAssetFlowApi();
+const assetRequestsStore = useAssetRequestsStore();
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
+const usersStore = useUsersStore();
 
 let userValue;
 
 try {
-  userValue = await api.fetchUser(userId);
+  userValue = await usersStore.fetchOne(userId);
 } catch {
   throw createError({ statusCode: 404, statusMessage: 'User not found' });
 }
 
-const [assets, tickets, assetRequests] = await Promise.all([
-  api.fetchAssets(),
-  api.fetchTickets(),
-  api.fetchAssetRequests(),
-]);
+await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll(), assetRequestsStore.fetchAll()]);
 
-const user = ref(userValue);
-const ownedAssets = computed(() => assets.filter((asset) => asset.userId === user.value.id));
-const userTickets = computed(() =>
-  tickets.filter((ticket) => ticket.requesterId === user.value.id),
-);
+const { byId: userMap } = storeToRefs(usersStore);
+const user = computed(() => userMap.value[userId] ?? userValue);
+const ownedAssets = computed(() => assetsStore.byUserId(user.value.id));
+const userTickets = computed(() => ticketsStore.byRequesterId(user.value.id));
 const openTickets = computed(() =>
   userTickets.value.filter((ticket) => ticket.status !== 'RESOLVED'),
 );
-const userRequests = computed(() =>
-  assetRequests.filter((request) => request.requesterId === user.value.id),
-);
+const userRequests = computed(() => assetRequestsStore.byRequesterId(user.value.id));
 const selectedRole = ref<AppRole>(user.value.role);
 const savingRole = ref(false);
 const savingDetails = ref(false);
@@ -315,7 +312,7 @@ const roleLocked = computed(() => user.value.role === 'ADMIN');
 const roleChanged = computed(() => selectedRole.value !== user.value.role);
 
 useHead({
-  title: getDisplayName(user.value),
+  title: computed(() => getDisplayName(user.value)),
 });
 
 watch(
@@ -334,7 +331,7 @@ const saveRole = async () => {
   savingRole.value = true;
 
   try {
-    user.value = await api.updateUserRole(user.value.id, { role: selectedRole.value });
+    await usersStore.updateRole(user.value.id, { role: selectedRole.value });
     toast.success('Role updated');
   } catch {
     toast.error('Unable to update role');
@@ -347,7 +344,7 @@ const saveDetails = async (payload: UserUpdatePayload) => {
   savingDetails.value = true;
 
   try {
-    user.value = await api.updateUser(user.value.id, payload);
+    await usersStore.updateUser(user.value.id, payload);
     toast.success('User details updated');
   } catch {
     toast.error('Unable to update user details');
@@ -365,7 +362,7 @@ const deleteUser = async () => {
   deletingUser.value = true;
 
   try {
-    await api.deleteUser(user.value.id);
+    await usersStore.deleteUser(user.value.id);
     deleteDialogOpen.value = false;
     toast.success('User account deleted');
     await navigateTo('/admin/users');

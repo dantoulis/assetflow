@@ -35,7 +35,7 @@
       </MetricCard>
       <MetricCard
         title="Open tickets"
-        :value="`${openTickets}`"
+        :value="`${openTicketCount}`"
         delta="Support load"
         hint="Tickets still active across managed users."
         tone="neutral"
@@ -96,6 +96,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { Boxes, MessagesSquare, ShieldCheck, UsersRound } from 'lucide-vue-next';
 import { getDisplayName, getInitials } from '@/lib/app-formatters';
 
@@ -107,20 +108,19 @@ useHead({
   title: 'Users',
 });
 
-const api = useAssetFlowApi();
-const [users, assets, tickets] = await Promise.all([
-  api.fetchUsers(),
-  api.fetchAssets(),
-  api.fetchTickets(),
-]);
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
+const usersStore = useUsersStore();
+
+await Promise.all([usersStore.fetchAll(), assetsStore.fetchAll(), ticketsStore.fetchAll()]);
+
+const { admins, managedUsers, teams } = storeToRefs(usersStore);
+const { assets } = storeToRefs(assetsStore);
+const { openTickets } = storeToRefs(ticketsStore);
 const teamFilter = ref('ALL');
 
-const managedUsers = computed(() => users.filter((user) => user.role === 'USER'));
-const adminCount = computed(() => users.filter((user) => user.role === 'ADMIN').length);
-const openTickets = computed(() => tickets.filter((ticket) => ticket.status !== 'RESOLVED').length);
-const teams = computed(
-  () => [...new Set(managedUsers.value.map((user) => user.team).filter(Boolean))] as string[],
-);
+const adminCount = computed(() => admins.value.length);
+const openTicketCount = computed(() => openTickets.value.length);
 const teamOptions = computed(() => [
   { label: 'All teams', value: 'ALL' },
   ...teams.value.map((team) => ({ label: team, value: team })),
@@ -132,10 +132,10 @@ const filteredUsers = computed(() =>
 );
 const averageAssetCount = computed(() => {
   if (!managedUsers.value.length) return '0';
-  return (assets.length / managedUsers.value.length).toFixed(1);
+  return (assets.value.length / managedUsers.value.length).toFixed(1);
 });
 
-const userAssetCount = (userId: number) => assets.filter((asset) => asset.userId === userId).length;
+const userAssetCount = (userId: number) => assetsStore.byUserId(userId).length;
 const userOpenTicketCount = (userId: number) =>
-  tickets.filter((ticket) => ticket.requesterId === userId && ticket.status !== 'RESOLVED').length;
+  ticketsStore.byRequesterId(userId).filter((ticket) => ticket.status !== 'RESOLVED').length;
 </script>

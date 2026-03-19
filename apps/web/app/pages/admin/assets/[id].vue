@@ -149,26 +149,31 @@ definePageMeta({
 
 const route = useRoute();
 const assetId = Number(route.params.id);
-const api = useAssetFlowApi();
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
+const usersStore = useUsersStore();
 
 let assetValue;
 
 try {
-  assetValue = await api.fetchAsset(assetId);
+  assetValue = await assetsStore.fetchOne(assetId);
 } catch {
   throw createError({ statusCode: 404, statusMessage: 'Asset not found' });
 }
 
-const [users, tickets] = await Promise.all([api.fetchUsers(), api.fetchTickets()]);
-const asset = assetValue;
-const owner = users.find((user) => user.id === asset.userId) ?? null;
-const ownerName = getDisplayName(owner);
-const ownerMeta = owner
-  ? `${owner.team || 'No team'} | ${owner.location || 'No location'}`
-  : 'No owner metadata';
-const relatedTickets = tickets.filter((ticket) => ticket.assetId === asset.id);
+await Promise.all([usersStore.fetchAll(), ticketsStore.fetchAll()]);
+
+const asset = computed(() => assetsStore.byId[assetId] ?? assetValue);
+const owner = computed(() => usersStore.byId[asset.value.userId] ?? null);
+const ownerName = computed(() => getDisplayName(owner.value));
+const ownerMeta = computed(() =>
+  owner.value
+    ? `${owner.value.team || 'No team'} | ${owner.value.location || 'No location'}`
+    : 'No owner metadata',
+);
+const relatedTickets = computed(() => ticketsStore.byAssetId(asset.value.id));
 
 useHead({
-  title: asset.title,
+  title: asset.value.title,
 });
 </script>

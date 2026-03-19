@@ -250,11 +250,6 @@ import {
   buildDailySeriesForRange,
   buildHourlySeriesForDay,
   buildMonthlySeriesForRange,
-  buildStatusDistribution,
-  buildTypeDistribution,
-  getOpenTickets,
-  getRenewingAssets,
-  getUserCountsByTeam,
 } from '@/lib/app-analytics';
 import {
   formatDate,
@@ -264,7 +259,6 @@ import {
   humanizeEnum,
 } from '@/lib/app-formatters';
 import type {
-  AppUser,
   ChartPeriodPreset,
   ChartPoint,
   DashboardMetric,
@@ -279,12 +273,16 @@ useHead({
   title: 'Admin Dashboard',
 });
 
-const api = useAssetFlowApi();
-const [users, assets, tickets, requests] = await Promise.all([
-  api.fetchUsers(),
-  api.fetchAssets(),
-  api.fetchTickets(),
-  api.fetchAssetRequests(),
+const assetsStore = useAssetsStore();
+const assetRequestsStore = useAssetRequestsStore();
+const ticketsStore = useTicketsStore();
+const usersStore = useUsersStore();
+
+await Promise.all([
+  usersStore.fetchAll(),
+  assetsStore.fetchAll(),
+  ticketsStore.fetchAll(),
+  assetRequestsStore.fetchAll(),
 ]);
 
 const metricIcons = [UsersRound, Boxes, MessageSquareDot, ClipboardList];
@@ -305,48 +303,33 @@ const buildNamedDistribution = (counts: Record<string, number>): DistributionSeg
       color: chartColors[index % chartColors.length]!,
     }));
 
-const userMap = computed(
-  () => Object.fromEntries(users.map((user) => [user.id, user])) as Record<number, AppUser>,
-);
-const managedUsers = computed(() => users.filter((user) => user.role === 'USER'));
-const openTickets = computed(() => getOpenTickets(tickets));
-const pendingRequests = computed(() => requests.filter((request) => request.status === 'PENDING'));
-const renewals = computed(() => getRenewingAssets(assets, 7).slice(0, 6));
-const queueTickets = computed(() =>
-  [...openTickets.value]
-    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
-    .slice(0, 4),
-);
-const queueRequests = computed(() =>
-  [...requests]
-    .filter((request) => request.status === 'PENDING' || request.status === 'APPROVED')
-    .sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime())
-    .slice(0, 4),
-);
+const renewals = computed(() => assetsStore.urgentRenewals(6, 7));
+const queueTickets = computed(() => ticketsStore.attentionQueue(4));
+const queueRequests = computed(() => assetRequestsStore.reviewQueue(4));
 
 const metrics = computed<DashboardMetric[]>(() => [
   {
     label: 'Managed users',
-    value: `${managedUsers.value.length}`,
-    delta: `${users.filter((user) => user.role === 'ADMIN').length} admins`,
+    value: `${usersStore.managedUsers.length}`,
+    delta: `${usersStore.admins.length} admins`,
     hint: 'Every non-admin account currently visible to the workspace.',
   },
   {
     label: 'Tracked assets',
-    value: `${assets.length}`,
+    value: `${assetsStore.count}`,
     delta: `${renewals.value.length} renewals due`,
     hint: 'Inventory currently assigned across the workspace.',
   },
   {
     label: 'Open tickets',
-    value: `${openTickets.value.length}`,
-    delta: `${tickets.filter((ticket) => ticket.status === 'PENDING_ADMIN').length} waiting on admin`,
+    value: `${ticketsStore.openTickets.length}`,
+    delta: `${ticketsStore.pendingAdminTickets.length} waiting on admin`,
     hint: 'Tickets that still need support movement.',
   },
   {
     label: 'Pending requests',
-    value: `${pendingRequests.value.length}`,
-    delta: `${requests.filter((request) => request.status === 'APPROVED').length} approved`,
+    value: `${assetRequestsStore.pendingRequests.length}`,
+    delta: `${assetRequestsStore.countsByStatus.APPROVED} approved`,
     hint: 'Asset requests still waiting for review or fulfillment.',
   },
 ]);
@@ -450,14 +433,14 @@ const buildTrendSeries = <T,>(items: T[], getDate: (item: T) => string | null | 
 
 const trendPoints = computed<ChartPoint[]>(() => {
   if (trendMetric.value === 'ASSETS') {
-    return buildTrendSeries(assets, (asset) => asset.createdAt);
+    return buildTrendSeries(assetsStore.assets, (asset) => asset.createdAt);
   }
 
   if (trendMetric.value === 'REQUESTS') {
-    return buildTrendSeries(requests, (request) => request.createdAt);
+    return buildTrendSeries(assetRequestsStore.requests, (request) => request.createdAt);
   }
 
-  return buildTrendSeries(tickets, (ticket) => ticket.createdAt);
+  return buildTrendSeries(ticketsStore.tickets, (ticket) => ticket.createdAt);
 });
 
 const trendTitle = computed(() => {
@@ -475,7 +458,7 @@ const trendValueLabel = computed(() => {
 const trendTotal = computed(() => {
   if (trendMetric.value === 'ASSETS') {
     return `${countItemsInRange(
-      assets,
+      assetsStore.assets,
       (asset) => asset.createdAt,
       resolvedTrendRange.value.start,
       resolvedTrendRange.value.end,
@@ -484,7 +467,7 @@ const trendTotal = computed(() => {
 
   if (trendMetric.value === 'REQUESTS') {
     return `${countItemsInRange(
-      requests,
+      assetRequestsStore.requests,
       (request) => request.createdAt,
       resolvedTrendRange.value.start,
       resolvedTrendRange.value.end,
@@ -492,7 +475,7 @@ const trendTotal = computed(() => {
   }
 
   return `${countItemsInRange(
-    tickets,
+    ticketsStore.tickets,
     (ticket) => ticket.createdAt,
     resolvedTrendRange.value.start,
     resolvedTrendRange.value.end,
@@ -535,22 +518,22 @@ const distributionModeOptions: Array<{
 
 const distributionSegments = computed<DistributionSegment[]>(() => {
   if (distributionMode.value === 'ASSET_STATUS') {
-    return buildStatusDistribution(assets);
+    return assetsStore.statusDistribution;
   }
 
   if (distributionMode.value === 'TICKET_STATUS') {
-    return buildStatusDistribution(tickets);
+    return ticketsStore.statusDistribution;
   }
 
   if (distributionMode.value === 'REQUEST_STATUS') {
-    return buildStatusDistribution(requests);
+    return assetRequestsStore.statusDistribution;
   }
 
   if (distributionMode.value === 'TEAM_MIX') {
-    return buildNamedDistribution(getUserCountsByTeam(managedUsers.value));
+    return buildNamedDistribution(usersStore.teamCounts);
   }
 
-  return buildTypeDistribution(assets);
+  return assetsStore.typeDistribution;
 });
 
 const distributionTitle = computed(() => {
@@ -569,12 +552,11 @@ const distributionCenterLabel = computed(() => {
 });
 
 const distributionCenterValue = computed(() => {
-  if (distributionMode.value === 'REQUEST_STATUS') return `${requests.length}`;
-  if (distributionMode.value === 'TICKET_STATUS') return `${tickets.length}`;
-  if (distributionMode.value === 'TEAM_MIX')
-    return `${Object.keys(getUserCountsByTeam(managedUsers.value)).length}`;
-  return `${assets.length}`;
+  if (distributionMode.value === 'REQUEST_STATUS') return `${assetRequestsStore.count}`;
+  if (distributionMode.value === 'TICKET_STATUS') return `${ticketsStore.count}`;
+  if (distributionMode.value === 'TEAM_MIX') return `${Object.keys(usersStore.teamCounts).length}`;
+  return `${assetsStore.count}`;
 });
 
-const userName = (userId: number) => getDisplayName(userMap.value[userId]);
+const userName = (userId: number) => getDisplayName(usersStore.byId[userId]);
 </script>

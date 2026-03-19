@@ -90,10 +90,10 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { Boxes, CalendarClock, LifeBuoy } from 'lucide-vue-next';
-import { getRenewingAssets } from '@/lib/app-analytics';
 import { formatRelativeDate, getAssetNextDate, humanizeEnum } from '@/lib/app-formatters';
-import type { AppAsset, AssetType } from '@/lib/app-types';
+import type { AssetType } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'user',
@@ -103,9 +103,13 @@ useHead({
   title: 'My Assets',
 });
 
-const api = useAssetFlowApi();
-const [assetsData, tickets] = await Promise.all([api.fetchAssets(), api.fetchTickets()]);
-const assets = ref<AppAsset[]>(assetsData);
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
+
+await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll()]);
+
+const { assets } = storeToRefs(assetsStore);
+const { tickets } = storeToRefs(ticketsStore);
 const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERAL'];
 const typeFilter = ref<'ALL' | AssetType>('ALL');
 const typeFilterOptions = [
@@ -113,10 +117,9 @@ const typeFilterOptions = [
   ...assetTypes.map((type) => ({ label: humanizeEnum(type), value: type })),
 ] as Array<{ label: string; value: 'ALL' | AssetType }>;
 
-const renewingSoon = computed(() => getRenewingAssets(assets.value, 21));
+const renewingSoon = computed(() => assetsStore.renewingWithin(21));
 const assetsWithTickets = computed(
-  () =>
-    assets.value.filter((asset) => tickets.some((ticket) => ticket.assetId === asset.id)).length,
+  () => assets.value.filter((asset) => ticketsStore.byAssetId(asset.id).length > 0).length,
 );
 const filteredAssets = computed(() =>
   assets.value.filter((asset) =>
@@ -124,6 +127,5 @@ const filteredAssets = computed(() =>
   ),
 );
 
-const linkedTicketCount = (assetId: number) =>
-  tickets.filter((ticket) => ticket.assetId === assetId).length;
+const linkedTicketCount = (assetId: number) => ticketsStore.byAssetId(assetId).length;
 </script>

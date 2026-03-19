@@ -17,7 +17,7 @@
       </MetricCard>
       <MetricCard
         title="Active"
-        :value="`${activeCount}`"
+        :value="`${activeAssets.length}`"
         delta="Healthy inventory"
         hint="Assets currently in a healthy operational state."
         tone="success"
@@ -35,7 +35,7 @@
       </MetricCard>
       <MetricCard
         title="Repair queue"
-        :value="`${repairCount}`"
+        :value="`${inRepairAssets.length}`"
         delta="Hardware"
         hint="Assets currently blocked or being serviced."
         tone="neutral"
@@ -102,15 +102,15 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { Boxes, CalendarClock, CircleCheckBig, Wrench } from 'lucide-vue-next';
-import { getRenewingAssets } from '@/lib/app-analytics';
 import {
   formatRelativeDate,
   getAssetNextDate,
   getDisplayName,
   humanizeEnum,
 } from '@/lib/app-formatters';
-import type { AppAsset, AppUser, AssetStatus, AssetType } from '@/lib/app-types';
+import type { AssetStatus, AssetType } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -120,9 +120,13 @@ useHead({
   title: 'Assets',
 });
 
-const api = useAssetFlowApi();
-const [assetsData, users] = await Promise.all([api.fetchAssets(), api.fetchUsers()]);
-const assets = ref<AppAsset[]>(assetsData);
+const assetsStore = useAssetsStore();
+const usersStore = useUsersStore();
+
+await Promise.all([assetsStore.fetchAll(), usersStore.fetchAll()]);
+
+const { activeAssets, assets, inRepairAssets } = storeToRefs(assetsStore);
+const { byId: userMap } = storeToRefs(usersStore);
 const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERAL'];
 const statuses: AssetStatus[] = ['ACTIVE', 'EXPIRING_SOON', 'EXPIRED', 'IN_REPAIR'];
 const typeFilter = ref<'ALL' | AssetType>('ALL');
@@ -136,17 +140,8 @@ const statusFilterOptions = [
   ...statuses.map((status) => ({ label: humanizeEnum(status), value: status })),
 ] as Array<{ label: string; value: 'ALL' | AssetStatus }>;
 
-const userMap = computed(
-  () => Object.fromEntries(users.map((user) => [user.id, user])) as Record<number, AppUser>,
-);
 const ownerName = (userId: number) => getDisplayName(userMap.value[userId]);
-const activeCount = computed(
-  () => assets.value.filter((asset) => asset.status === 'ACTIVE').length,
-);
-const repairCount = computed(
-  () => assets.value.filter((asset) => asset.status === 'IN_REPAIR').length,
-);
-const renewingSoon = computed(() => getRenewingAssets(assets.value, 21));
+const renewingSoon = computed(() => assetsStore.renewingWithin(21));
 const filteredAssets = computed(() =>
   assets.value.filter((asset) => {
     if (typeFilter.value !== 'ALL' && asset.type !== typeFilter.value) return false;

@@ -17,7 +17,7 @@
       </MetricCard>
       <MetricCard
         title="Pending admin"
-        :value="`${pendingAdminCount}`"
+        :value="`${pendingAdminTickets.length}`"
         delta="Needs reply"
         hint="Threads where the next step belongs to the admin team."
         tone="warning"
@@ -26,7 +26,7 @@
       </MetricCard>
       <MetricCard
         title="Resolved"
-        :value="`${resolvedCount}`"
+        :value="`${resolvedTickets.length}`"
         delta="Closed loop"
         hint="Tickets that have already been wrapped up."
         tone="success"
@@ -35,7 +35,7 @@
       </MetricCard>
       <MetricCard
         title="High priority"
-        :value="`${highPriorityCount}`"
+        :value="`${highPriorityTickets.length}`"
         delta="Fast lane"
         hint="Tickets that should be handled first."
         tone="neutral"
@@ -102,9 +102,10 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { AlertTriangle, CheckCheck, MessagesSquare, TimerReset } from 'lucide-vue-next';
 import { formatRelativeDate, getDisplayName, humanizeEnum } from '@/lib/app-formatters';
-import type { AppTicket, AppUser, TicketPriority, TicketStatus } from '@/lib/app-types';
+import type { TicketPriority, TicketStatus } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -114,14 +115,16 @@ useHead({
   title: 'Tickets',
 });
 
-const api = useAssetFlowApi();
-const [ticketData, users, assets] = await Promise.all([
-  api.fetchTickets(),
-  api.fetchUsers(),
-  api.fetchAssets(),
-]);
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
+const usersStore = useUsersStore();
 
-const tickets = ref<AppTicket[]>(ticketData);
+await Promise.all([ticketsStore.fetchAll(), usersStore.fetchAll(), assetsStore.fetchAll()]);
+
+const { assets } = storeToRefs(assetsStore);
+const { highPriorityTickets, pendingAdminTickets, resolvedTickets, tickets } =
+  storeToRefs(ticketsStore);
+const { byId: userMap } = storeToRefs(usersStore);
 const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESOLVED'];
 const priorities: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
 const statusFilter = ref<'ALL' | TicketStatus>('ALL');
@@ -135,22 +138,8 @@ const priorityFilterOptions = [
   ...priorities.map((priority) => ({ label: humanizeEnum(priority), value: priority })),
 ] as Array<{ label: string; value: 'ALL' | TicketPriority }>;
 
-const userMap = computed(
-  () => Object.fromEntries(users.map((user) => [user.id, user])) as Record<number, AppUser>,
-);
 const userName = (userId: number) => getDisplayName(userMap.value[userId]);
-const assetTitle = (assetId: number | null) =>
-  assets.find((asset) => asset.id === assetId)?.title ?? 'General request';
-
-const pendingAdminCount = computed(
-  () => tickets.value.filter((ticket) => ticket.status === 'PENDING_ADMIN').length,
-);
-const resolvedCount = computed(
-  () => tickets.value.filter((ticket) => ticket.status === 'RESOLVED').length,
-);
-const highPriorityCount = computed(
-  () => tickets.value.filter((ticket) => ticket.priority === 'HIGH').length,
-);
+const assetTitle = (assetId: number | null) => assetsStore.titleFor(assetId);
 
 const filteredTickets = computed(() =>
   tickets.value.filter((ticket) => {

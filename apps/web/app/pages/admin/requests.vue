@@ -17,7 +17,7 @@
       </MetricCard>
       <MetricCard
         title="Pending"
-        :value="`${counts.PENDING}`"
+        :value="`${countsByStatus.PENDING}`"
         delta="Needs review"
         hint="Requests still waiting for a decision."
         tone="warning"
@@ -26,7 +26,7 @@
       </MetricCard>
       <MetricCard
         title="Approved"
-        :value="`${counts.APPROVED}`"
+        :value="`${countsByStatus.APPROVED}`"
         delta="Ready to fulfill"
         hint="Requests that can be matched to an asset."
         tone="success"
@@ -35,7 +35,7 @@
       </MetricCard>
       <MetricCard
         title="Fulfilled"
-        :value="`${counts.FULFILLED}`"
+        :value="`${countsByStatus.FULFILLED}`"
         delta="Delivered"
         hint="Requests already linked to a real asset."
         tone="neutral"
@@ -168,9 +168,10 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { BadgeCheck, CircleCheckBig, ClipboardList, Clock3 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
-import type { AppAssetRequest, AppUser, AssetRequestReviewPayload } from '@/lib/app-types';
+import type { AppAssetRequest, AssetRequestReviewPayload } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -180,49 +181,30 @@ useHead({
   title: 'Asset Requests',
 });
 
-const api = useAssetFlowApi();
+const assetRequestsStore = useAssetRequestsStore();
+const assetsStore = useAssetsStore();
+const usersStore = useUsersStore();
 
-const [requestsData, users, assets] = await Promise.all([
-  api.fetchAssetRequests(),
-  api.fetchUsers(),
-  api.fetchAssets(),
-]);
+await Promise.all([assetRequestsStore.fetchAll(), usersStore.fetchAll(), assetsStore.fetchAll()]);
 
-const requests = ref(requestsData);
+const { countsByStatus, requests } = storeToRefs(assetRequestsStore);
+const { assets } = storeToRefs(assetsStore);
+const { byId: userMap } = storeToRefs(usersStore);
 const workingId = ref<number | null>(null);
 const rejectDialogOpen = ref(false);
 const rejectTarget = ref<AppAssetRequest | null>(null);
 const rejectionReason = ref('');
 const fulfillmentSelection = reactive<Record<number, number>>({});
 
-const counts = computed(() => {
-  const base = { PENDING: 0, APPROVED: 0, REJECTED: 0, FULFILLED: 0 };
-
-  for (const request of requests.value) {
-    base[request.status] += 1;
-  }
-
-  return base;
-});
-
-const userMap = computed(
-  () => Object.fromEntries(users.map((user) => [user.id, user])) as Record<number, AppUser>,
-);
 const userName = (userId: number) =>
   userMap.value[userId]?.name || userMap.value[userId]?.username || 'Unknown user';
-const assetsForRequester = (requesterId: number) =>
-  assets.filter((asset) => asset.userId === requesterId);
 const fulfillmentOptions = (requesterId: number) => [
   { label: 'Choose asset to fulfill', value: 0 },
-  ...assetsForRequester(requesterId).map((asset) => ({
+  ...assetsStore.byUserId(requesterId).map((asset) => ({
     label: `${asset.title} | ${asset.reference}`,
     value: asset.id,
   })),
 ];
-
-const replaceRequest = (updated: AppAssetRequest) => {
-  requests.value = requests.value.map((request) => (request.id === updated.id ? updated : request));
-};
 
 const openRejectDialog = (request: AppAssetRequest) => {
   rejectTarget.value = request;
@@ -234,8 +216,7 @@ const reviewRequest = async (id: number, status: AssetRequestReviewPayload['stat
   workingId.value = id;
 
   try {
-    const updated = await api.reviewAssetRequest(id, { status });
-    replaceRequest(updated);
+    await assetRequestsStore.reviewRequest(id, { status });
     toast.success(`Request ${status.toLowerCase()}`);
   } catch {
     toast.error('Unable to review request');
@@ -259,11 +240,10 @@ const submitRejection = async () => {
   workingId.value = target.id;
 
   try {
-    const updated = await api.reviewAssetRequest(target.id, {
+    await assetRequestsStore.reviewRequest(target.id, {
       status: 'REJECTED',
       rejectionReason: rejectionReason.value.trim(),
     });
-    replaceRequest(updated);
     rejectDialogOpen.value = false;
     rejectTarget.value = null;
     rejectionReason.value = '';
@@ -283,8 +263,7 @@ const fulfillRequest = async (id: number) => {
   workingId.value = id;
 
   try {
-    const updated = await api.fulfillAssetRequest(id, { fulfilledAssetId });
-    replaceRequest(updated);
+    await assetRequestsStore.fulfillRequest(id, { fulfilledAssetId });
     toast.success('Request fulfilled');
   } catch {
     toast.error('Unable to fulfill request');

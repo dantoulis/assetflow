@@ -87,7 +87,7 @@
       </MetricCard>
       <MetricCard
         title="Waiting on admin"
-        :value="`${pendingAdminCount}`"
+        :value="`${pendingAdminTickets.length}`"
         delta="Queue"
         hint="Threads where the next step belongs to the admin team."
         tone="warning"
@@ -96,7 +96,7 @@
       </MetricCard>
       <MetricCard
         title="Waiting on you"
-        :value="`${pendingUserCount}`"
+        :value="`${pendingUserTickets.length}`"
         delta="Follow up"
         hint="Threads that need your reply or confirmation."
         tone="neutral"
@@ -105,7 +105,7 @@
       </MetricCard>
       <MetricCard
         title="Resolved"
-        :value="`${resolvedCount}`"
+        :value="`${resolvedTickets.length}`"
         delta="Closed loop"
         hint="Finished conversations kept for reference."
         tone="success"
@@ -174,6 +174,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import {
   CircleCheckBig,
   MessageCirclePlus,
@@ -183,7 +184,7 @@ import {
 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { formatRelativeDate, humanizeEnum } from '@/lib/app-formatters';
-import type { AppTicket, TicketCategory, TicketPriority, TicketStatus } from '@/lib/app-types';
+import type { TicketCategory, TicketPriority, TicketStatus } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'user',
@@ -193,11 +194,14 @@ useHead({
   title: 'My Tickets',
 });
 
-const api = useAssetFlowApi();
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
 
-const [assets, initialTickets] = await Promise.all([api.fetchAssets(), api.fetchTickets()]);
+await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll()]);
 
-const tickets = ref<AppTicket[]>(initialTickets);
+const { assets } = storeToRefs(assetsStore);
+const { pendingAdminTickets, pendingUserTickets, resolvedTickets, tickets } =
+  storeToRefs(ticketsStore);
 const dialogOpen = ref(false);
 const creating = ref(false);
 const statusFilter = ref<'ALL' | TicketStatus>('ALL');
@@ -207,7 +211,7 @@ const priorities: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
 const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESOLVED'];
 const assetOptions = computed(() => [
   { label: 'General request', value: 0 },
-  ...assets.map((asset) => ({ label: asset.title, value: asset.id })),
+  ...assets.value.map((asset) => ({ label: asset.title, value: asset.id })),
 ]);
 const categoryOptions = categories.map((category) => ({
   label: humanizeEnum(category),
@@ -234,16 +238,6 @@ const draft = reactive({
   message: '',
 });
 
-const pendingAdminCount = computed(
-  () => tickets.value.filter((ticket) => ticket.status === 'PENDING_ADMIN').length,
-);
-const pendingUserCount = computed(
-  () => tickets.value.filter((ticket) => ticket.status === 'PENDING_USER').length,
-);
-const resolvedCount = computed(
-  () => tickets.value.filter((ticket) => ticket.status === 'RESOLVED').length,
-);
-
 const filteredTickets = computed(() =>
   tickets.value.filter((ticket) => {
     if (statusFilter.value !== 'ALL' && ticket.status !== statusFilter.value) return false;
@@ -252,8 +246,7 @@ const filteredTickets = computed(() =>
   }),
 );
 
-const assetTitle = (assetId: number | null) =>
-  assets.find((asset) => asset.id === assetId)?.title ?? 'General request';
+const assetTitle = (assetId: number | null) => assetsStore.titleFor(assetId);
 
 const resetDraft = () => {
   draft.assetId = 0;
@@ -272,19 +265,15 @@ const submitTicket = async () => {
   creating.value = true;
 
   try {
-    const created = await api.createTicket({
-      subject: draft.subject.trim(),
-      category: draft.category,
-      priority: draft.priority,
-      ...(draft.assetId ? { assetId: draft.assetId } : {}),
-    });
-
-    await api.createTicketMessage(created.id, {
-      body: draft.message.trim(),
-    });
-
-    const hydrated = await api.fetchTicket(created.id);
-    tickets.value = [hydrated, ...tickets.value];
+    await ticketsStore.createTicketWithMessage(
+      {
+        subject: draft.subject.trim(),
+        category: draft.category,
+        priority: draft.priority,
+        ...(draft.assetId ? { assetId: draft.assetId } : {}),
+      },
+      draft.message.trim(),
+    );
     dialogOpen.value = false;
     resetDraft();
     toast.success('Ticket created');

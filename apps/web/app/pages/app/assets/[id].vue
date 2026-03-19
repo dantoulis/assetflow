@@ -130,21 +130,23 @@ definePageMeta({
 
 const route = useRoute();
 const assetId = Number(route.params.id);
-const api = useAssetFlowApi();
+const assetsStore = useAssetsStore();
+const ticketsStore = useTicketsStore();
 
 let assetValue;
 
 try {
-  assetValue = await api.fetchAsset(assetId);
+  assetValue = await assetsStore.fetchOne(assetId);
 } catch {
   throw createError({ statusCode: 404, statusMessage: 'Asset not found' });
 }
 
-const asset = assetValue;
-const tickets = await api.fetchTickets();
-const relatedTickets = tickets.filter((ticket) => ticket.assetId === asset.id);
+await ticketsStore.fetchAll();
+
+const asset = computed(() => assetsStore.byId[assetId] ?? assetValue);
+const relatedTickets = computed(() => ticketsStore.byAssetId(asset.value.id));
 
 useHead({
-  title: asset.title,
+  title: asset.value.title,
 });
 </script>
