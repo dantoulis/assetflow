@@ -118,7 +118,9 @@
               class="min-h-36 rounded-3xl"
               :disabled="isResolved"
               :placeholder="
-                isResolved ? 'Resolved tickets cannot receive new replies.' : 'Write a reply or internal note...'
+                isResolved
+                  ? 'Resolved tickets cannot receive new replies.'
+                  : 'Write a reply or internal note...'
               "
             />
             <label

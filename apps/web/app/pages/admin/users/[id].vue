@@ -80,7 +80,9 @@
                   />
                 </div>
 
-                <div class="rounded-2xl border border-border/70 bg-muted/45 px-4 py-3 text-sm text-muted-foreground">
+                <div
+                  class="rounded-2xl border border-border/70 bg-muted/45 px-4 py-3 text-sm text-muted-foreground"
+                >
                   <span class="font-semibold text-foreground">Admin access:</span>
                   once granted, it cannot be removed. Use this promotion carefully because it
                   immediately changes what data and actions this person can access.
@@ -108,20 +110,18 @@
                   </p>
                 </div>
 
-                <div class="rounded-2xl border border-destructive/25 bg-background px-4 py-3 text-sm text-muted-foreground">
+                <div
+                  class="rounded-2xl border border-destructive/25 bg-background px-4 py-3 text-sm text-muted-foreground"
+                >
                   <span class="font-semibold text-foreground">Important:</span>
-                  admin accounts cannot be deleted. Once promoted, they remain admins in the
-                  current permission model.
+                  admin accounts cannot be deleted. Once promoted, they remain admins in the current
+                  permission model.
                 </div>
 
                 <div class="flex justify-end">
                   <Dialog v-model:open="deleteDialogOpen">
                     <DialogTrigger as-child>
-                      <Button
-                        variant="destructive"
-                        class="rounded-2xl"
-                        :disabled="!canDeleteUser"
-                      >
+                      <Button variant="destructive" class="rounded-2xl" :disabled="!canDeleteUser">
                         Delete account
                       </Button>
                     </DialogTrigger>

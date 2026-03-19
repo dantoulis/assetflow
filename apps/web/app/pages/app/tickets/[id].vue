@@ -63,7 +63,9 @@
               v-model="draft"
               class="min-h-36 rounded-3xl"
               :disabled="isResolved"
-              :placeholder="isResolved ? 'Resolved tickets cannot receive new replies.' : 'Write your reply...'"
+              :placeholder="
+                isResolved ? 'Resolved tickets cannot receive new replies.' : 'Write your reply...'
+              "
             />
             <div class="flex flex-wrap gap-3">
               <Button class="rounded-2xl" :disabled="sending || isResolved" @click="sendReply">
