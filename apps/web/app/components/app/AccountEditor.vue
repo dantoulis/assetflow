@@ -1,10 +1,10 @@
 <template>
-  <div :class="embedded ? 'grid gap-5' : 'app-surface overflow-hidden'">
-    <CardHeader :class="embedded ? 'gap-1 px-0 pt-0' : undefined">
+  <div :class="embedded ? 'grid gap-6 py-2' : 'app-surface overflow-hidden'">
+    <CardHeader :class="embedded ? 'gap-1 px-0 pt-0' : 'px-6 pt-6'">
       <CardTitle>{{ title }}</CardTitle>
       <CardDescription>{{ description }}</CardDescription>
     </CardHeader>
-    <CardContent :class="embedded ? 'grid gap-5 px-0 pb-0' : 'space-y-5'">
+    <CardContent :class="embedded ? 'grid gap-5 px-0 pb-0' : 'space-y-5 px-6 pb-6'">
       <div class="grid gap-4 md:grid-cols-2">
         <div class="space-y-2">
           <Label for="account-name">Full name</Label>
