@@ -4,13 +4,16 @@
       v-for="message in visibleMessages"
       :key="message.id"
       :class="
-        cn('flex gap-3', message.authorId === props.currentUserId ? 'justify-end' : 'justify-start')
+        cn(
+          'flex items-start gap-3',
+          message.authorId === props.currentUserId ? 'justify-end' : 'justify-start',
+        )
       "
     >
       <template v-if="message.authorId !== props.currentUserId">
-        <Avatar class="mt-1 size-9 border border-white/10">
+        <Avatar class="size-9 border border-white/10">
           <AvatarFallback class="bg-muted text-xs font-semibold text-foreground">
-            {{ getUserById(message.authorId)?.initials }}
+            {{ getAuthor(message.authorId).initials }}
           </AvatarFallback>
         </Avatar>
       </template>
@@ -26,23 +29,25 @@
           )
         "
       >
-        <div class="mb-2 flex items-center gap-2 text-xs font-medium">
-          <span>{{ getUserById(message.authorId)?.name }}</span>
-          <span class="text-current/60">{{ formatDateTime(message.createdAt) }}</span>
-          <Badge
-            v-if="message.internal"
-            variant="outline"
-            class="rounded-full border-amber-500/20 bg-amber-500/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300"
-          >
-            Internal note
-          </Badge>
+        <div class="space-y-2">
+          <div class="flex flex-wrap items-center gap-2 text-xs font-medium">
+            <span>{{ getAuthor(message.authorId).name }}</span>
+            <span class="text-current/60">{{ formatDateTime(message.createdAt) }}</span>
+            <Badge
+              v-if="message.internal"
+              variant="outline"
+              class="rounded-full border-amber-500/20 bg-amber-500/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300"
+            >
+              Internal note
+            </Badge>
+          </div>
+          <p class="text-sm leading-6">{{ message.body }}</p>
         </div>
-        <p class="text-sm leading-6">{{ message.body }}</p>
       </div>
       <template v-if="message.authorId === props.currentUserId">
-        <Avatar class="mt-1 size-9 border border-white/10">
+        <Avatar class="size-9 border border-white/10">
           <AvatarFallback class="bg-primary/15 text-xs font-semibold text-primary">
-            {{ getUserById(message.authorId)?.initials }}
+            {{ getAuthor(message.authorId).initials }}
           </AvatarFallback>
         </Avatar>
       </template>
@@ -51,18 +56,20 @@
 </template>
 
 <script setup lang="ts">
-import type { MockTicketMessage } from '@/lib/mock-data';
-import { formatDateTime, getUserById } from '@/lib/mock-data';
+import { formatDateTime } from '@/lib/app-formatters';
+import type { AppTicketMessage } from '@/lib/app-types';
 import { cn } from '@/lib/utils';
 
 const props = withDefaults(
   defineProps<{
-    messages: MockTicketMessage[];
-    currentUserId: string;
+    messages: AppTicketMessage[];
+    currentUserId: number;
+    authors?: Record<number, { name: string; initials: string }>;
     includeInternal?: boolean;
   }>(),
   {
     includeInternal: false,
+    authors: () => ({}),
   },
 );
 
@@ -71,4 +78,13 @@ const visibleMessages = computed(() => {
     ? props.messages
     : props.messages.filter((message) => !message.internal);
 });
+
+const getAuthor = (authorId: number) => {
+  return (
+    props.authors[authorId] ?? {
+      name: authorId === props.currentUserId ? 'You' : 'Support',
+      initials: authorId === props.currentUserId ? 'YO' : 'SP',
+    }
+  );
+};
 </script>

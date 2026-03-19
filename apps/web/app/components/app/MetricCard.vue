@@ -1,6 +1,6 @@
 <template>
-  <Card class="app-surface overflow-hidden">
-    <CardContent class="p-5">
+  <Card :class="cn('app-surface overflow-hidden', props.class)">
+    <CardContent class="grid gap-4 p-5">
       <div class="flex items-start justify-between gap-4">
         <div class="space-y-3">
           <p class="text-sm font-medium text-muted-foreground">{{ title }}</p>
@@ -17,7 +17,7 @@
           <slot name="icon" />
         </div>
       </div>
-      <p class="mt-4 text-sm leading-6 text-muted-foreground">{{ hint }}</p>
+      <p class="text-sm leading-6 text-muted-foreground">{{ hint }}</p>
     </CardContent>
   </Card>
 </template>
@@ -32,9 +32,11 @@ const props = withDefaults(
     delta: string;
     hint: string;
     tone?: 'primary' | 'success' | 'warning' | 'neutral';
+    class?: string;
   }>(),
   {
     tone: 'primary',
+    class: '',
   },
 );
 

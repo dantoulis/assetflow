@@ -1,10 +1,10 @@
 <template>
   <SidebarProvider class="min-h-svh">
     <Sidebar variant="inset" collapsible="offcanvas">
-      <SidebarHeader class="border-b border-sidebar-border/70 px-3 py-4">
+      <SidebarHeader class="flex h-20 items-center border-b border-sidebar-border/70 px-4 py-4">
         <AppWordmark :compact="false" />
       </SidebarHeader>
-      <SidebarContent class="px-2 py-4">
+      <SidebarContent class="px-3 py-4">
         <SidebarGroup v-for="section in sections" :key="section.label">
           <SidebarGroupLabel>{{ section.label }}</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -21,22 +21,24 @@
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter class="border-t border-sidebar-border/70 p-3">
-        <div
-          class="rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/40 p-3 text-sm leading-6 text-sidebar-foreground/78"
-        >
-          Backend calls are intentionally disabled. This shell is the contract preview for the later
-          Nest + Prisma phase.
-        </div>
+      <SidebarFooter class="px-3 pb-4 pt-0">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton @click="handleSignOut">
+              <LogOut />
+              <span>Sign out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
 
     <SidebarInset>
       <header
-        class="sticky top-0 z-20 border-b border-border/60 bg-background/70 px-4 py-4 backdrop-blur md:px-6"
+        class="sticky top-0 z-20 flex h-20 items-center border-b border-border/60 bg-background/70 px-4 py-4 backdrop-blur md:px-6"
       >
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex w-full flex-wrap items-center gap-3">
           <div class="flex items-center gap-3">
             <SidebarTrigger class="-ml-1" />
             <div>
@@ -51,7 +53,7 @@
               variant="outline"
               class="rounded-full border-primary/15 bg-primary/10 px-3 py-1 text-primary"
             >
-              Frontend preview
+              Live data
             </Badge>
             <ThemeToggle />
             <SessionMenu />
@@ -67,14 +69,23 @@
 </template>
 
 <script setup lang="ts">
-import { Boxes, ChartColumnBig, MessageSquareMore, UsersRound } from 'lucide-vue-next';
+import {
+  Boxes,
+  ChartColumnBig,
+  ClipboardList,
+  LogOut,
+  MessageSquareMore,
+  UserRound,
+  UsersRound,
+} from 'lucide-vue-next';
 
 const route = useRoute();
+const { logout } = useAuth();
 const todayLabel = new Intl.DateTimeFormat('en-US', {
   weekday: 'long',
   month: 'long',
   day: 'numeric',
-}).format(new Date('2026-03-14T12:00:00.000Z'));
+}).format(new Date());
 
 const sections = [
   {
@@ -84,11 +95,18 @@ const sections = [
       { label: 'Users', to: '/admin/users', icon: UsersRound },
       { label: 'Assets', to: '/admin/assets', icon: Boxes },
       { label: 'Tickets', to: '/admin/tickets', icon: MessageSquareMore },
+      { label: 'Requests', to: '/admin/requests', icon: ClipboardList },
+      { label: 'Account', to: '/admin/account', icon: UserRound },
     ],
   },
 ];
 
 const isActive = (path: string) => {
   return route.path === path || route.path.startsWith(`${path}/`);
+};
+
+const handleSignOut = async () => {
+  await logout();
+  await navigateTo('/login');
 };
 </script>

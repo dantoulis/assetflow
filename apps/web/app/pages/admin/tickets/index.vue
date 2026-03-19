@@ -2,42 +2,42 @@
   <div class="space-y-6">
     <PageIntro
       eyebrow="Support"
-      title="Ticket inbox with ownership context."
-      description="Admin needs more than a generic list: the ticket queue is cross-linked with users, assets, priority, and recency so support decisions can be made inside the operational surface."
+      title="Ticket queue with live ownership context."
+      description="Review every thread in one place, filter the queue, and drill into the conversations that need action."
     />
 
     <section class="grid gap-4 xl:grid-cols-4">
       <MetricCard
         title="All tickets"
-        :value="`${mockTickets.length}`"
-        delta="Current dataset"
-        hint="Every support thread currently represented in the preview."
+        :value="`${tickets.length}`"
+        delta="Total queue"
+        hint="Every support conversation in the system."
       >
         <template #icon><MessagesSquare class="size-5" /></template>
       </MetricCard>
       <MetricCard
-        title="Urgent"
-        :value="`${mockTickets.filter((ticket) => ticket.priority === 'URGENT').length}`"
-        delta="Requires immediate action"
-        hint="Highest-priority tickets at the top of the support queue."
+        title="Pending admin"
+        :value="`${pendingAdminCount}`"
+        delta="Needs reply"
+        hint="Threads where the next step belongs to the admin team."
         tone="warning"
       >
         <template #icon><AlertTriangle class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Resolved"
-        :value="`${mockTickets.filter((ticket) => ticket.status === 'RESOLVED').length}`"
+        :value="`${resolvedCount}`"
         delta="Closed loop"
-        hint="Threads where the admin can archive or review outcome quality."
+        hint="Tickets that have already been wrapped up."
         tone="success"
       >
         <template #icon><CheckCheck class="size-5" /></template>
       </MetricCard>
       <MetricCard
-        title="Awaiting reply"
-        :value="`${mockTickets.filter((ticket) => ticket.status === 'PENDING_ADMIN').length}`"
-        delta="Admin action"
-        hint="Conversations where the next step belongs to the admin."
+        title="High priority"
+        :value="`${highPriorityCount}`"
+        delta="Fast lane"
+        hint="Tickets that should be handled first."
         tone="neutral"
       >
         <template #icon><TimerReset class="size-5" /></template>
@@ -45,46 +45,57 @@
     </section>
 
     <Card class="app-surface overflow-hidden">
-      <CardHeader>
-        <CardTitle>Ticket queue</CardTitle>
-        <CardDescription
-          >The column set is intentionally backend-ready: status, priority, owner, linked asset, and
-          freshness.</CardDescription
-        >
+      <CardHeader class="gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <CardTitle>Ticket queue</CardTitle>
+          <CardDescription>Filter by status and priority to focus the queue.</CardDescription>
+        </div>
+        <div class="grid gap-3 md:grid-cols-2">
+          <AppSelectField
+            v-model="statusFilter"
+            :options="statusFilterOptions"
+            placeholder="All statuses"
+            trigger-class="min-w-44"
+          />
+          <AppSelectField
+            v-model="priorityFilter"
+            :options="priorityFilterOptions"
+            placeholder="All priorities"
+            trigger-class="min-w-44"
+          />
+        </div>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ticket</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Asset</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead class="text-right">Updated</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="ticket in mockTickets" :key="ticket.id">
-              <TableCell>
-                <NuxtLink
-                  :to="`/admin/tickets/${ticket.id}`"
-                  class="font-semibold hover:text-primary"
-                >
-                  {{ ticket.subject }}
-                </NuxtLink>
-                <p class="text-xs text-muted-foreground">{{ ticket.preview }}</p>
-              </TableCell>
-              <TableCell>{{ getUserById(ticket.userId)?.name }}</TableCell>
-              <TableCell>{{ assetTitle(ticket.assetId) }}</TableCell>
-              <TableCell><StatusBadge :status="ticket.status" /></TableCell>
-              <TableCell><StatusBadge :status="ticket.priority" /></TableCell>
-              <TableCell class="text-right text-sm text-muted-foreground">{{
-                formatRelativeDate(ticket.updatedAt)
-              }}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+      <CardContent class="space-y-3">
+        <NuxtLink
+          v-for="ticket in filteredTickets"
+          :key="ticket.id"
+          :to="`/admin/tickets/${ticket.id}`"
+          class="app-list-item"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="space-y-3">
+              <div class="flex flex-wrap gap-2">
+                <StatusBadge :status="ticket.status" />
+                <StatusBadge :status="ticket.priority" />
+              </div>
+              <div>
+                <p class="font-semibold">{{ ticket.subject }}</p>
+                <p class="text-sm text-muted-foreground">
+                  {{ userName(ticket.requesterId) }} · {{ assetTitle(ticket.assetId) }} · Updated
+                  {{ formatRelativeDate(ticket.updatedAt) }}
+                </p>
+              </div>
+            </div>
+            <StatusBadge :status="ticket.category" />
+          </div>
+        </NuxtLink>
+
+        <div
+          v-if="!filteredTickets.length"
+          class="rounded-3xl border border-dashed border-border/70 bg-background/35 p-6 text-sm text-muted-foreground"
+        >
+          No tickets match the current filters.
+        </div>
       </CardContent>
     </Card>
   </div>
@@ -92,7 +103,8 @@
 
 <script setup lang="ts">
 import { AlertTriangle, CheckCheck, MessagesSquare, TimerReset } from 'lucide-vue-next';
-import { formatRelativeDate, getUserById, mockAssets, mockTickets } from '@/lib/mock-data';
+import { formatRelativeDate, getDisplayName, humanizeEnum } from '@/lib/app-formatters';
+import type { AppTicket, AppUser, TicketPriority, TicketStatus } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -102,7 +114,49 @@ useHead({
   title: 'Tickets',
 });
 
-const assetTitle = (assetId?: string) => {
-  return mockAssets.find((asset) => asset.id === assetId)?.title ?? 'General request';
-};
+const api = useAssetFlowApi();
+const [ticketData, users, assets] = await Promise.all([
+  api.fetchTickets(),
+  api.fetchUsers(),
+  api.fetchAssets(),
+]);
+
+const tickets = ref<AppTicket[]>(ticketData);
+const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESOLVED'];
+const priorities: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
+const statusFilter = ref<'ALL' | TicketStatus>('ALL');
+const priorityFilter = ref<'ALL' | TicketPriority>('ALL');
+const statusFilterOptions = [
+  { label: 'All statuses', value: 'ALL' },
+  ...statuses.map((status) => ({ label: humanizeEnum(status), value: status })),
+] as Array<{ label: string; value: 'ALL' | TicketStatus }>;
+const priorityFilterOptions = [
+  { label: 'All priorities', value: 'ALL' },
+  ...priorities.map((priority) => ({ label: humanizeEnum(priority), value: priority })),
+] as Array<{ label: string; value: 'ALL' | TicketPriority }>;
+
+const userMap = computed(
+  () => Object.fromEntries(users.map((user) => [user.id, user])) as Record<number, AppUser>,
+);
+const userName = (userId: number) => getDisplayName(userMap.value[userId]);
+const assetTitle = (assetId: number | null) =>
+  assets.find((asset) => asset.id === assetId)?.title ?? 'General request';
+
+const pendingAdminCount = computed(
+  () => tickets.value.filter((ticket) => ticket.status === 'PENDING_ADMIN').length,
+);
+const resolvedCount = computed(
+  () => tickets.value.filter((ticket) => ticket.status === 'RESOLVED').length,
+);
+const highPriorityCount = computed(
+  () => tickets.value.filter((ticket) => ticket.priority === 'HIGH').length,
+);
+
+const filteredTickets = computed(() =>
+  tickets.value.filter((ticket) => {
+    if (statusFilter.value !== 'ALL' && ticket.status !== statusFilter.value) return false;
+    if (priorityFilter.value !== 'ALL' && ticket.priority !== priorityFilter.value) return false;
+    return true;
+  }),
+);
 </script>

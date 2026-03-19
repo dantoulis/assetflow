@@ -36,11 +36,6 @@ const config = computed(() => {
       class:
         'border-emerald-500/25 bg-emerald-500/18 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/12 dark:text-emerald-300',
     },
-    TRIAL: {
-      label: 'Trial',
-      class:
-        'border-amber-500/25 bg-amber-500/18 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/12 dark:text-amber-300',
-    },
     SUSPENDED: {
       label: 'Suspended',
       class:
@@ -55,11 +50,6 @@ const config = computed(() => {
       label: 'Expired',
       class:
         'border-rose-500/25 bg-rose-500/18 text-rose-800 dark:border-rose-500/20 dark:bg-rose-500/12 dark:text-rose-300',
-    },
-    UNASSIGNED: {
-      label: 'Unassigned',
-      class:
-        'border-slate-300/90 bg-slate-100 text-slate-700 dark:border-border dark:bg-muted/80 dark:text-muted-foreground',
     },
     IN_REPAIR: {
       label: 'In repair',
@@ -101,10 +91,25 @@ const config = computed(() => {
       class:
         'border-amber-500/25 bg-amber-500/18 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/12 dark:text-amber-300',
     },
-    URGENT: {
-      label: 'Urgent',
+    PENDING: {
+      label: 'Pending',
+      class:
+        'border-sky-500/25 bg-sky-500/18 text-sky-800 dark:border-sky-500/20 dark:bg-sky-500/12 dark:text-sky-300',
+    },
+    APPROVED: {
+      label: 'Approved',
+      class:
+        'border-emerald-500/25 bg-emerald-500/18 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/12 dark:text-emerald-300',
+    },
+    REJECTED: {
+      label: 'Rejected',
       class:
         'border-rose-500/25 bg-rose-500/18 text-rose-800 dark:border-rose-500/20 dark:bg-rose-500/12 dark:text-rose-300',
+    },
+    FULFILLED: {
+      label: 'Fulfilled',
+      class:
+        'border-chart-2/28 bg-chart-2/18 text-slate-800 dark:border-chart-2/20 dark:bg-chart-2/12 dark:text-foreground',
     },
     LAPTOP: {
       label: 'Laptop',

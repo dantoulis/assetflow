@@ -1,29 +1,33 @@
 <template>
-  <div class="space-y-6">
+  <div v-if="ticket" class="space-y-6">
     <PageIntro
       eyebrow="Ticket detail"
-      :title="activeTicket.subject"
-      description="This is the user-side thread view. It intentionally hides every other conversation in the system and only shows what belongs to your account."
+      :title="ticket.subject"
+      description="Follow the live conversation, review the current status, and reply without leaving the workspace."
     />
 
     <section class="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
       <Card class="app-surface overflow-hidden">
         <CardHeader>
           <CardTitle>Thread status</CardTitle>
-          <CardDescription>What the ticket is waiting on right now.</CardDescription>
+          <CardDescription>What the conversation is waiting on right now.</CardDescription>
         </CardHeader>
         <CardContent class="space-y-4">
           <div class="flex flex-wrap gap-2">
-            <StatusBadge :status="activeTicket.status" />
-            <StatusBadge :status="activeTicket.priority" />
+            <StatusBadge :status="ticket.status" />
+            <StatusBadge :status="ticket.priority" />
           </div>
-          <div class="rounded-3xl border border-border/70 bg-background/55 p-4">
-            <p class="text-sm text-muted-foreground">Last updated</p>
-            <p class="mt-1 font-semibold">{{ formatRelativeDate(activeTicket.updatedAt) }}</p>
-          </div>
-          <div class="rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
             <p class="text-sm text-muted-foreground">Category</p>
-            <p class="mt-1 font-semibold">{{ activeTicket.category }}</p>
+            <p class="font-semibold">{{ humanizeEnum(ticket.category) }}</p>
+          </div>
+          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+            <p class="text-sm text-muted-foreground">Related asset</p>
+            <p class="font-semibold">{{ assetTitle }}</p>
+          </div>
+          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+            <p class="text-sm text-muted-foreground">Last updated</p>
+            <p class="font-semibold">{{ formatRelativeDate(ticket.updatedAt) }}</p>
           </div>
         </CardContent>
       </Card>
@@ -32,39 +36,38 @@
         <Card class="app-surface overflow-hidden">
           <CardHeader>
             <CardTitle>Conversation</CardTitle>
-            <CardDescription>Only the user-visible thread is rendered here.</CardDescription>
+            <CardDescription>User-visible replies only.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ConversationThread :messages="localMessages" :current-user-id="viewer.id" />
+            <ConversationThread
+              :messages="messages"
+              :current-user-id="viewer.id"
+              :authors="authors"
+            />
           </CardContent>
         </Card>
 
         <Card class="app-surface overflow-hidden">
           <CardHeader>
             <CardTitle>Reply</CardTitle>
-            <CardDescription
-              >The composer is real, but the reply stays in mock state until the API
-              phase.</CardDescription
-            >
+            <CardDescription>
+              {{
+                isResolved
+                  ? 'This ticket has been resolved. Replies are disabled unless support reopens it.'
+                  : 'Send a real reply to continue the thread.'
+              }}
+            </CardDescription>
           </CardHeader>
           <CardContent class="space-y-4">
             <Textarea
               v-model="draft"
               class="min-h-36 rounded-3xl"
-              placeholder="Write your reply..."
+              :disabled="isResolved"
+              :placeholder="isResolved ? 'Resolved tickets cannot receive new replies.' : 'Write your reply...'"
             />
             <div class="flex flex-wrap gap-3">
-              <Button class="rounded-2xl" @click="sendReply">
-                <MessageSquareReply class="size-4" />
-                Send reply
-              </Button>
-              <Button
-                variant="outline"
-                class="rounded-2xl"
-                @click="toast.message('Attachments will be added in a later pass.')"
-              >
-                <Sparkles class="size-4" />
-                Attach file
+              <Button class="rounded-2xl" :disabled="sending || isResolved" @click="sendReply">
+                {{ sending ? 'Sending...' : 'Send reply' }}
               </Button>
             </div>
           </CardContent>
@@ -75,48 +78,95 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquareReply, Sparkles } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import {
   formatRelativeDate,
-  getMessagesForTicket,
-  getTicketById,
-  previewUser,
-} from '@/lib/mock-data';
+  getDisplayName,
+  getInitials,
+  humanizeEnum,
+} from '@/lib/app-formatters';
+import type { AppTicket, AppTicketMessage } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'user',
 });
 
-const viewer = previewUser;
-
 const route = useRoute();
-const ticket = getTicketById(route.params.id as string);
+const ticketId = Number(route.params.id);
+const api = useAssetFlowApi();
+const { currentUser, refreshSession } = useAuth();
 
-if (!ticket || ticket.userId !== viewer.id)
+if (!currentUser.value) {
+  await refreshSession();
+}
+
+const viewer = currentUser.value;
+
+if (!viewer) {
+  throw createError({ statusCode: 401, statusMessage: 'Authentication required' });
+}
+
+let ticketValue: AppTicket;
+
+try {
+  ticketValue = await api.fetchTicket(ticketId);
+} catch {
   throw createError({ statusCode: 404, statusMessage: 'Ticket not found' });
+}
 
-const activeTicket = ticket;
+const ticket = ref(ticketValue);
+const asset = ticket.value.assetId ? await api.fetchAsset(ticket.value.assetId) : null;
+const messages = ref<AppTicketMessage[]>(await api.fetchTicketMessages(ticketId));
+const draft = ref('');
+const sending = ref(false);
 
 useHead({
-  title: activeTicket.subject,
+  title: ticket.value.subject,
 });
 
-const draft = ref('');
-const localMessages = ref([...getMessagesForTicket(activeTicket.id)]);
+const authors = computed(() => {
+  const supportName = ticket.value.assignedAdminId ? 'Assigned admin' : 'Support';
 
-const sendReply = () => {
-  if (!draft.value.trim()) return;
+  return {
+    [viewer.id]: {
+      name: getDisplayName(viewer),
+      initials: getInitials(viewer),
+    },
+    ...(ticket.value.assignedAdminId
+      ? {
+          [ticket.value.assignedAdminId]: {
+            name: supportName,
+            initials: 'AD',
+          },
+        }
+      : {}),
+  };
+});
 
-  localMessages.value.push({
-    id: `local-${Date.now()}`,
-    ticketId: activeTicket.id,
-    authorId: viewer.id,
-    body: draft.value.trim(),
-    createdAt: new Date().toISOString(),
-  });
+const assetTitle = computed(() => asset?.title ?? 'General request');
+const isResolved = computed(() => ticket.value.status === 'RESOLVED');
 
-  toast.success('Reply added in preview mode');
-  draft.value = '';
+const refreshTicketState = async () => {
+  ticket.value = await api.fetchTicket(ticketId);
+  messages.value = await api.fetchTicketMessages(ticketId);
+};
+
+const sendReply = async () => {
+  if (!draft.value.trim() || isResolved.value) return;
+
+  sending.value = true;
+
+  try {
+    await api.createTicketMessage(ticketId, {
+      body: draft.value.trim(),
+    });
+    await refreshTicketState();
+    draft.value = '';
+    toast.success('Reply sent');
+  } catch {
+    toast.error('Unable to send reply');
+  } finally {
+    sending.value = false;
+  }
 };
 </script>

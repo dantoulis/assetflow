@@ -2,7 +2,7 @@
   <DropdownMenuSeparator
     data-slot="dropdown-menu-separator"
     v-bind="delegatedProps"
-    :class="cn('bg-border -mx-1 my-1 h-px', props.class)"
+    :class="cn('mx-1.5 my-2 h-px bg-border/70', props.class)"
   />
 </template>
 

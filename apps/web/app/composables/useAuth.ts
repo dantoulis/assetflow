@@ -1,11 +1,4 @@
-type AuthRole = 'ADMIN' | 'USER';
-
-interface AuthUser {
-  id: number;
-  email: string;
-  username: string;
-  role: AuthRole;
-}
+import type { AppUser } from '@/lib/app-types';
 
 interface LoginPayload {
   username: string;
@@ -13,6 +6,7 @@ interface LoginPayload {
 }
 
 interface RegisterPayload {
+  name?: string;
   username: string;
   email: string;
   password: string;
@@ -21,8 +15,21 @@ interface RegisterPayload {
 export const useAuth = () => {
   const config = useRuntimeConfig();
   const apiBase = config.public.apiBase;
+  const request = async <T>(path: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
+    const cookieHeaders = process.server ? useRequestHeaders(['cookie']) : undefined;
 
-  const currentUser = useState<AuthUser | null>('auth.current-user', () => null);
+    return $fetch<T>(path, {
+      baseURL: apiBase,
+      credentials: 'include',
+      headers: {
+        ...(cookieHeaders ?? {}),
+        ...(options.headers ?? {}),
+      },
+      ...options,
+    });
+  };
+
+  const currentUser = useState<AppUser | null>('auth.current-user', () => null);
   const isInitialized = useState('auth.is-initialized', () => false);
   const isInitializing = useState('auth.is-initializing', () => false);
 
@@ -40,10 +47,7 @@ export const useAuth = () => {
     isInitializing.value = true;
 
     try {
-      const user = await $fetch<AuthUser>('/auth/me', {
-        baseURL: apiBase,
-        credentials: 'include',
-      });
+      const user = await request<AppUser>('/auth/me');
 
       currentUser.value = user;
       return user;
@@ -57,10 +61,8 @@ export const useAuth = () => {
   };
 
   const login = async (payload: LoginPayload) => {
-    const user = await $fetch<AuthUser>('/auth/login', {
+    const user = await request<AppUser>('/auth/login', {
       method: 'POST',
-      baseURL: apiBase,
-      credentials: 'include',
       body: payload,
     });
 
@@ -70,10 +72,8 @@ export const useAuth = () => {
   };
 
   const register = async (payload: RegisterPayload) => {
-    const user = await $fetch<AuthUser>('/auth/register', {
+    const user = await request<AppUser>('/auth/register', {
       method: 'POST',
-      baseURL: apiBase,
-      credentials: 'include',
       body: payload,
     });
 
@@ -83,14 +83,16 @@ export const useAuth = () => {
   };
 
   const logout = async () => {
-    await $fetch('/auth/logout', {
+    await request('/auth/logout', {
       method: 'POST',
-      baseURL: apiBase,
-      credentials: 'include',
     });
 
     currentUser.value = null;
     isInitialized.value = true;
+  };
+
+  const setCurrentUser = (user: AppUser | null) => {
+    currentUser.value = user;
   };
 
   return {
@@ -103,5 +105,6 @@ export const useAuth = () => {
     logout,
     refreshSession,
     register,
+    setCurrentUser,
   };
 };

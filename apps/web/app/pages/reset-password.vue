@@ -7,10 +7,10 @@
         >
           Reset
         </div>
-        <h1 class="text-3xl font-semibold tracking-[-0.05em]">Reset screen placeholder</h1>
+        <h1 class="text-3xl font-semibold tracking-[-0.05em]">Password reset will land here</h1>
         <p class="text-sm leading-6 text-muted-foreground">
-          The screen exists so the auth route map is complete. Once the backend is ready, this form
-          can validate a reset token and persist a new password without redesigning the page.
+          The final flow will validate a reset token and save a new password from this screen. The
+          route is already reserved so the auth experience will not need a redesign later.
         </p>
       </div>
 
@@ -33,7 +33,7 @@
             placeholder="Repeat the password"
           />
         </div>
-        <Button type="button" class="h-12 w-full rounded-2xl">Reset password later</Button>
+        <Button type="button" class="h-12 w-full rounded-2xl" disabled>Reset password</Button>
       </form>
 
       <Button variant="ghost" as-child class="rounded-2xl px-0">

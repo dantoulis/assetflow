@@ -1,54 +1,160 @@
 <template>
-  <div class="space-y-6">
+  <div v-if="user" class="space-y-6">
     <PageIntro
       eyebrow="User detail"
-      :title="user.name"
-      description="The drilldown page merges ownership, subscriptions, support history, and profile posture so an admin can make changes without context switching."
-    >
-      <template #actions>
-        <Button
-          class="rounded-2xl"
-          @click="toast.message('Role change will become a guarded backend action later.')"
-          >Change role</Button
-        >
-        <Button
-          variant="outline"
-          class="rounded-2xl"
-          @click="toast.message('Suspension is UI-only during the frontend pass.')"
-          >Suspend access</Button
-        >
-      </template>
-    </PageIntro>
+      :title="getDisplayName(user)"
+      description="Review ownership, support history, and update the account role when needed."
+    />
 
     <section class="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
       <Card class="app-surface overflow-hidden">
-        <CardContent class="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
-          <div class="flex items-center gap-4">
-            <Avatar class="size-16 border border-white/10">
-              <AvatarFallback class="bg-primary/12 text-xl font-semibold text-primary">{{
-                user.initials
-              }}</AvatarFallback>
-            </Avatar>
-            <div class="space-y-2">
-              <div class="flex flex-wrap gap-2">
-                <StatusBadge :status="user.role" />
-                <StatusBadge :status="user.status" />
-              </div>
-              <div>
-                <p class="text-2xl font-semibold tracking-[-0.04em]">{{ user.name }}</p>
-                <p class="text-sm text-muted-foreground">
-                  {{ user.team }} · {{ user.company }} · {{ user.location }}
-                </p>
+        <CardContent class="grid gap-6 p-6">
+          <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div class="flex items-center gap-4">
+              <Avatar class="size-16 border border-white/10">
+                <AvatarFallback class="bg-primary/12 text-xl font-semibold text-primary">
+                  {{ getInitials(user) }}
+                </AvatarFallback>
+              </Avatar>
+              <div class="space-y-2">
+                <div class="flex flex-wrap gap-2">
+                  <StatusBadge :status="user.role" />
+                </div>
+                <div>
+                  <p class="text-2xl font-semibold tracking-[-0.04em]">
+                    {{ getDisplayName(user) }}
+                  </p>
+                  <p class="text-sm text-muted-foreground">
+                    {{ user.team || 'No team' }} | {{ user.location || 'No location' }}
+                  </p>
+                </div>
               </div>
             </div>
+            <div class="grid gap-3 text-sm text-muted-foreground">
+              <p><span class="font-semibold text-foreground">Email:</span> {{ user.email }}</p>
+              <p>
+                <span class="font-semibold text-foreground">Phone:</span>
+                {{ user.phone || 'Not set' }}
+              </p>
+              <p>
+                <span class="font-semibold text-foreground">Joined:</span>
+                {{ formatDate(user.joinedAt) }}
+              </p>
+            </div>
           </div>
-          <div class="grid gap-3 text-sm text-muted-foreground">
-            <p><span class="font-semibold text-foreground">Email:</span> {{ user.email }}</p>
-            <p><span class="font-semibold text-foreground">Phone:</span> {{ user.phone }}</p>
-            <p>
-              <span class="font-semibold text-foreground">Joined:</span>
-              {{ formatDate(user.joinedAt) }}
-            </p>
+
+          <div class="h-px bg-border/70" />
+
+          <AccountEditor
+            embedded
+            :user="user"
+            :saving="savingDetails"
+            title="Edit user details"
+            description="Update this account's identity and contact fields without leaving the detail view."
+            submit-label="Save user"
+            @submit="saveDetails"
+          />
+
+          <div class="h-px bg-border/70" />
+
+          <div class="grid gap-4 lg:grid-cols-2">
+            <div class="rounded-3xl border border-border/70 bg-background p-5">
+              <div class="grid gap-4">
+                <div class="grid gap-1">
+                  <p class="text-sm font-semibold text-foreground">Role access</p>
+                  <p class="text-sm leading-6 text-muted-foreground">
+                    Promote this account to grant admin visibility across users, assets, tickets,
+                    and requests. Once an account becomes an admin, that role is permanent in the
+                    current permission model.
+                  </p>
+                </div>
+
+                <div class="grid gap-2">
+                  <Label for="user-role">Role</Label>
+                  <AppSelectField
+                    id="user-role"
+                    v-model="selectedRole"
+                    :options="roleOptions"
+                    placeholder="Choose role"
+                    :disabled="roleLocked"
+                  />
+                </div>
+
+                <div class="rounded-2xl border border-border/70 bg-muted/45 px-4 py-3 text-sm text-muted-foreground">
+                  <span class="font-semibold text-foreground">Admin access:</span>
+                  once granted, it cannot be removed. Use this promotion carefully because it
+                  immediately changes what data and actions this person can access.
+                </div>
+
+                <div class="flex justify-end">
+                  <Button
+                    class="rounded-2xl"
+                    :disabled="savingRole || roleLocked || !roleChanged"
+                    @click="saveRole"
+                  >
+                    {{ savingRole ? 'Saving...' : roleLocked ? 'Role locked' : 'Save role' }}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-3xl border border-destructive/30 bg-destructive/6 p-5">
+              <div class="grid gap-4">
+                <div class="grid gap-1">
+                  <p class="text-sm font-semibold text-foreground">Danger zone</p>
+                  <p class="text-sm leading-6 text-muted-foreground">
+                    Deleting this account removes the user record from the workspace. This action
+                    should only be used for accounts that should no longer exist in the system.
+                  </p>
+                </div>
+
+                <div class="rounded-2xl border border-destructive/25 bg-background px-4 py-3 text-sm text-muted-foreground">
+                  <span class="font-semibold text-foreground">Important:</span>
+                  admin accounts cannot be deleted. Once promoted, they remain admins in the
+                  current permission model.
+                </div>
+
+                <div class="flex justify-end">
+                  <Dialog v-model:open="deleteDialogOpen">
+                    <DialogTrigger as-child>
+                      <Button
+                        variant="destructive"
+                        class="rounded-2xl"
+                        :disabled="!canDeleteUser"
+                      >
+                        Delete account
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent class="rounded-3xl sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Delete user account</DialogTitle>
+                        <DialogDescription>
+                          This will permanently remove {{ getDisplayName(user) }} from the
+                          workspace. This action cannot be undone.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          class="rounded-2xl"
+                          @click="deleteDialogOpen = false"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          class="rounded-2xl"
+                          :disabled="deletingUser"
+                          @click="deleteUser"
+                        >
+                          {{ deletingUser ? 'Deleting...' : 'Delete account' }}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -56,29 +162,29 @@
       <div class="grid gap-4">
         <MetricCard
           title="Assigned assets"
-          :value="`${assets.length}`"
+          :value="`${ownedAssets.length}`"
           delta="Current footprint"
-          hint="Everything currently attributed to this user."
+          hint="Assets currently attributed to this user."
         >
-          <template #icon><ShieldCheck class="size-5" /></template>
-        </MetricCard>
-        <MetricCard
-          title="Recurring spend"
-          :value="formatCurrency(recurringSpend)"
-          delta="Monthly normalized"
-          hint="Only subscriptions and licenses are included."
-          tone="success"
-        >
-          <template #icon><CreditCard class="size-5" /></template>
+          <template #icon><Boxes class="size-5" /></template>
         </MetricCard>
         <MetricCard
           title="Open tickets"
-          :value="`${tickets.filter((ticket) => ticket.status !== 'RESOLVED').length}`"
+          :value="`${openTickets.length}`"
           delta="Support load"
-          hint="Conversations that still require a reply or decision."
+          hint="Active support conversations for this user."
           tone="warning"
         >
           <template #icon><Ticket class="size-5" /></template>
+        </MetricCard>
+        <MetricCard
+          title="Asset requests"
+          :value="`${userRequests.length}`"
+          delta="Procurement history"
+          hint="Requests this user has opened with the admin team."
+          tone="success"
+        >
+          <template #icon><ClipboardList class="size-5" /></template>
         </MetricCard>
       </div>
     </section>
@@ -87,79 +193,62 @@
       <Card class="app-surface overflow-hidden">
         <CardHeader>
           <CardTitle>Assigned assets</CardTitle>
-          <CardDescription
-            >Ownership, expiry pressure, and renewal posture for this user.</CardDescription
-          >
+          <CardDescription>
+            Ownership, lifecycle pressure, and current state for this user.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Asset</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Renewal / expiry</TableHead>
-                <TableHead class="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-for="asset in assets" :key="asset.id">
-                <TableCell>
-                  <NuxtLink
-                    :to="`/admin/assets/${asset.id}`"
-                    class="font-semibold hover:text-primary"
-                    >{{ asset.title }}</NuxtLink
-                  >
-                  <p class="text-xs text-muted-foreground">{{ asset.vendor }}</p>
-                </TableCell>
-                <TableCell><StatusBadge :status="asset.type" /></TableCell>
-                <TableCell><StatusBadge :status="asset.status" /></TableCell>
-                <TableCell>{{
-                  formatRelativeDate(asset.renewalAt ?? asset.expiresAt ?? '')
-                }}</TableCell>
-                <TableCell class="text-right">{{
-                  formatCurrency(asset.amount, asset.currency)
-                }}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+        <CardContent class="space-y-3">
+          <NuxtLink
+            v-for="asset in ownedAssets"
+            :key="asset.id"
+            :to="`/admin/assets/${asset.id}`"
+            class="app-list-item"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="space-y-2">
+                <div class="flex flex-wrap gap-2">
+                  <StatusBadge :status="asset.type" />
+                  <StatusBadge :status="asset.status" />
+                </div>
+                <div>
+                  <p class="font-semibold">{{ asset.title }}</p>
+                  <p class="text-sm text-muted-foreground">
+                    {{ asset.vendor }} | {{ formatRelativeDate(getAssetNextDate(asset)) }}
+                  </p>
+                </div>
+              </div>
+              <span class="text-xs text-muted-foreground">{{ asset.reference }}</span>
+            </div>
+          </NuxtLink>
         </CardContent>
       </Card>
 
       <Card class="app-surface overflow-hidden">
         <CardHeader>
           <CardTitle>Recent ticket history</CardTitle>
-          <CardDescription>Support state associated with this user.</CardDescription>
+          <CardDescription>Support conversations associated with this user.</CardDescription>
         </CardHeader>
         <CardContent class="space-y-3">
           <NuxtLink
-            v-for="ticket in tickets"
+            v-for="ticket in userTickets"
             :key="ticket.id"
             :to="`/admin/tickets/${ticket.id}`"
-            class="block rounded-3xl border border-border/70 bg-background/55 p-4 transition hover:border-primary/20 hover:bg-primary/5"
+            class="app-list-item"
           >
-            <div class="flex flex-wrap items-center gap-2">
-              <StatusBadge :status="ticket.priority" />
-              <StatusBadge :status="ticket.status" />
+            <div class="grid gap-3">
+              <div class="flex flex-wrap gap-2">
+                <StatusBadge :status="ticket.priority" />
+                <StatusBadge :status="ticket.status" />
+              </div>
+              <div class="space-y-1">
+                <p class="font-semibold">{{ ticket.subject }}</p>
+                <p class="text-sm text-muted-foreground">
+                  {{ humanizeEnum(ticket.category) }} | Updated
+                  {{ formatRelativeDate(ticket.updatedAt) }}
+                </p>
+              </div>
             </div>
-            <p class="mt-3 font-semibold">{{ ticket.subject }}</p>
-            <p class="mt-1 text-sm text-muted-foreground">{{ ticket.preview }}</p>
-            <p class="mt-3 text-xs text-muted-foreground">
-              Updated {{ formatRelativeDate(ticket.updatedAt) }}
-            </p>
           </NuxtLink>
-
-          <div
-            class="rounded-3xl border border-border/70 bg-background/55 p-4 text-sm leading-6 text-muted-foreground"
-          >
-            <div class="mb-3 flex items-center gap-2 font-semibold text-foreground">
-              <UserCog class="size-4 text-primary" />
-              Admin actions ready for backend wiring
-            </div>
-            Role change, renewals, reassignment, and account suspension are intentionally
-            represented in the UI before the API exists, so the later Nest routes can follow this
-            exact admin flow.
-          </div>
         </CardContent>
       </Card>
     </section>
@@ -167,34 +256,123 @@
 </template>
 
 <script setup lang="ts">
-import { CreditCard, ShieldCheck, Ticket, UserCog } from 'lucide-vue-next';
+import { Boxes, ClipboardList, Ticket } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import {
-  formatCurrency,
   formatDate,
   formatRelativeDate,
-  getAssetsForUser,
-  getTicketsForUser,
-  getRecurringMonthlySpend,
-  getUserById,
-} from '@/lib/mock-data';
+  getAssetNextDate,
+  getDisplayName,
+  getInitials,
+  humanizeEnum,
+} from '@/lib/app-formatters';
+import type { AppRole, UserUpdatePayload } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
 });
 
 const route = useRoute();
-const userId = route.params.id as string;
-const user = getUserById(userId);
+const userId = Number(route.params.id);
+const api = useAssetFlowApi();
 
-if (!user || user.role !== 'USER')
+let userValue;
+
+try {
+  userValue = await api.fetchUser(userId);
+} catch {
   throw createError({ statusCode: 404, statusMessage: 'User not found' });
+}
+
+const [assets, tickets, assetRequests] = await Promise.all([
+  api.fetchAssets(),
+  api.fetchTickets(),
+  api.fetchAssetRequests(),
+]);
+
+const user = ref(userValue);
+const ownedAssets = computed(() => assets.filter((asset) => asset.userId === user.value.id));
+const userTickets = computed(() =>
+  tickets.filter((ticket) => ticket.requesterId === user.value.id),
+);
+const openTickets = computed(() =>
+  userTickets.value.filter((ticket) => ticket.status !== 'RESOLVED'),
+);
+const userRequests = computed(() =>
+  assetRequests.filter((request) => request.requesterId === user.value.id),
+);
+const selectedRole = ref<AppRole>(user.value.role);
+const savingRole = ref(false);
+const savingDetails = ref(false);
+const deleteDialogOpen = ref(false);
+const deletingUser = ref(false);
+const roleOptions: Array<{ label: string; value: AppRole }> = [
+  { label: 'User', value: 'USER' },
+  { label: 'Admin', value: 'ADMIN' },
+];
+const canDeleteUser = computed(() => user.value.role !== 'ADMIN');
+const roleLocked = computed(() => user.value.role === 'ADMIN');
+const roleChanged = computed(() => selectedRole.value !== user.value.role);
 
 useHead({
-  title: `${user.name}`,
+  title: getDisplayName(user.value),
 });
 
-const assets = getAssetsForUser(user.id);
-const tickets = getTicketsForUser(user.id);
-const recurringSpend = getRecurringMonthlySpend(assets);
+watch(
+  () => user.value.role,
+  (role) => {
+    selectedRole.value = role;
+  },
+  { immediate: true },
+);
+
+const saveRole = async () => {
+  if (roleLocked.value || !roleChanged.value) {
+    return;
+  }
+
+  savingRole.value = true;
+
+  try {
+    user.value = await api.updateUserRole(user.value.id, { role: selectedRole.value });
+    toast.success('Role updated');
+  } catch {
+    toast.error('Unable to update role');
+  } finally {
+    savingRole.value = false;
+  }
+};
+
+const saveDetails = async (payload: UserUpdatePayload) => {
+  savingDetails.value = true;
+
+  try {
+    user.value = await api.updateUser(user.value.id, payload);
+    toast.success('User details updated');
+  } catch {
+    toast.error('Unable to update user details');
+  } finally {
+    savingDetails.value = false;
+  }
+};
+
+const deleteUser = async () => {
+  if (!canDeleteUser.value) {
+    toast.error('Admin accounts cannot be deleted');
+    return;
+  }
+
+  deletingUser.value = true;
+
+  try {
+    await api.deleteUser(user.value.id);
+    deleteDialogOpen.value = false;
+    toast.success('User account deleted');
+    await navigateTo('/admin/users');
+  } catch {
+    toast.error('Unable to delete user account');
+  } finally {
+    deletingUser.value = false;
+  }
+};
 </script>

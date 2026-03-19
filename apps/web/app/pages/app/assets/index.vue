@@ -1,94 +1,99 @@
 <template>
   <div class="space-y-6">
     <PageIntro
-      eyebrow="Owned assets"
-      title="Everything currently assigned to you."
-      description="This view keeps ownership transparent: hardware, subscriptions, renewal timing, and current operational status in one place."
+      eyebrow="My assets"
+      title="Everything assigned to your account."
+      description="Track the assets on your profile, watch upcoming renewals, and jump directly into any related support conversation."
     />
 
     <section class="grid gap-4 xl:grid-cols-3">
       <MetricCard
         title="Assigned assets"
         :value="`${assets.length}`"
-        delta="Current profile footprint"
+        delta="Current footprint"
         hint="Every asset currently linked to your account."
       >
         <template #icon><Boxes class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Renewals due soon"
-        :value="`${assets.filter((asset) => ['EXPIRING_SOON', 'EXPIRED'].includes(asset.status)).length}`"
-        delta="Watch closely"
-        hint="These assets may need support or admin follow-up."
+        :value="`${renewingSoon.length}`"
+        delta="Next 21 days"
+        hint="Assets likely to need attention soon."
         tone="warning"
       >
         <template #icon><CalendarClock class="size-5" /></template>
       </MetricCard>
       <MetricCard
-        title="Recurring monthly spend"
-        :value="formatCurrency(getRecurringMonthlySpend(assets))"
-        delta="Software only"
-        hint="Recurring services normalized to monthly cost."
+        title="Linked tickets"
+        :value="`${assetsWithTickets}`"
+        delta="Support context"
+        hint="Assets that already have support history attached."
         tone="success"
       >
-        <template #icon><CreditCard class="size-5" /></template>
+        <template #icon><LifeBuoy class="size-5" /></template>
       </MetricCard>
     </section>
 
     <Card class="app-surface overflow-hidden">
-      <CardHeader>
-        <CardTitle>Asset list</CardTitle>
-        <CardDescription
-          >Focused on the data the user actually cares about: what it is, its state, and when it
-          renews or expires.</CardDescription
-        >
+      <CardHeader class="gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <CardTitle>Asset list</CardTitle>
+          <CardDescription
+            >Filter by type to focus on the assets you need right now.</CardDescription
+          >
+        </div>
+        <AppSelectField
+          v-model="typeFilter"
+          :options="typeFilterOptions"
+          placeholder="All asset types"
+          trigger-class="min-w-44"
+        />
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Asset</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Next date</TableHead>
-              <TableHead class="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="asset in assets" :key="asset.id">
-              <TableCell>
-                <NuxtLink
-                  :to="`/app/assets/${asset.id}`"
-                  class="font-semibold hover:text-primary"
-                  >{{ asset.title }}</NuxtLink
-                >
-                <p class="text-xs text-muted-foreground">{{ asset.vendor }}</p>
-              </TableCell>
-              <TableCell><StatusBadge :status="asset.type" /></TableCell>
-              <TableCell><StatusBadge :status="asset.status" /></TableCell>
-              <TableCell>{{
-                formatRelativeDate(asset.renewalAt ?? asset.expiresAt ?? '')
-              }}</TableCell>
-              <TableCell class="text-right">{{
-                formatCurrency(asset.amount, asset.currency)
-              }}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+      <CardContent class="space-y-3">
+        <NuxtLink
+          v-for="asset in filteredAssets"
+          :key="asset.id"
+          :to="`/app/assets/${asset.id}`"
+          class="app-list-item"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="space-y-2">
+              <div class="flex flex-wrap gap-2">
+                <StatusBadge :status="asset.type" />
+                <StatusBadge :status="asset.status" />
+              </div>
+              <div>
+                <p class="font-semibold">{{ asset.title }}</p>
+                <p class="text-sm text-muted-foreground">
+                  {{ asset.vendor }} · {{ asset.reference }} ·
+                  {{ formatRelativeDate(getAssetNextDate(asset)) }}
+                </p>
+              </div>
+            </div>
+            <span class="text-xs text-muted-foreground">
+              {{ linkedTicketCount(asset.id) }} linked
+              {{ linkedTicketCount(asset.id) === 1 ? 'ticket' : 'tickets' }}
+            </span>
+          </div>
+        </NuxtLink>
+
+        <div
+          v-if="!filteredAssets.length"
+          class="rounded-3xl border border-dashed border-border/70 bg-background/35 p-6 text-sm text-muted-foreground"
+        >
+          No assets match the current filter.
+        </div>
       </CardContent>
     </Card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Boxes, CalendarClock, CreditCard } from 'lucide-vue-next';
-import {
-  formatCurrency,
-  formatRelativeDate,
-  getAssetsForUser,
-  getRecurringMonthlySpend,
-  previewUser,
-} from '@/lib/mock-data';
+import { Boxes, CalendarClock, LifeBuoy } from 'lucide-vue-next';
+import { getRenewingAssets } from '@/lib/app-analytics';
+import { formatRelativeDate, getAssetNextDate, humanizeEnum } from '@/lib/app-formatters';
+import type { AppAsset, AssetType } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'user',
@@ -98,5 +103,27 @@ useHead({
   title: 'My Assets',
 });
 
-const assets = getAssetsForUser(previewUser.id);
+const api = useAssetFlowApi();
+const [assetsData, tickets] = await Promise.all([api.fetchAssets(), api.fetchTickets()]);
+const assets = ref<AppAsset[]>(assetsData);
+const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERAL'];
+const typeFilter = ref<'ALL' | AssetType>('ALL');
+const typeFilterOptions = [
+  { label: 'All asset types', value: 'ALL' },
+  ...assetTypes.map((type) => ({ label: humanizeEnum(type), value: type })),
+] as Array<{ label: string; value: 'ALL' | AssetType }>;
+
+const renewingSoon = computed(() => getRenewingAssets(assets.value, 21));
+const assetsWithTickets = computed(
+  () =>
+    assets.value.filter((asset) => tickets.some((ticket) => ticket.assetId === asset.id)).length,
+);
+const filteredAssets = computed(() =>
+  assets.value.filter((asset) =>
+    typeFilter.value === 'ALL' ? true : asset.type === typeFilter.value,
+  ),
+);
+
+const linkedTicketCount = (assetId: number) =>
+  tickets.filter((ticket) => ticket.assetId === assetId).length;
 </script>

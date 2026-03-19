@@ -13,18 +13,41 @@
         <span class="sr-only">Toggle theme</span>
       </Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="w-44 rounded-2xl">
-      <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+    <DropdownMenuContent align="end" class="w-56 rounded-2xl p-2.5">
+      <DropdownMenuLabel class="rounded-2xl border border-border/70 bg-accent/40 px-3.5 py-3">
+        <div class="space-y-1">
+          <p class="text-sm font-semibold text-foreground">Appearance</p>
+          <p class="text-xs text-muted-foreground">Choose how AssetFlow should look.</p>
+        </div>
+      </DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuItem
         v-for="item in modeItems"
         :key="item.value"
-        class="gap-2"
+        class="group px-3.5 py-3"
         @click="colorMode.preference = item.value"
       >
-        <component :is="item.icon" class="size-4 text-muted-foreground" />
-        <span>{{ item.label }}</span>
-        <Check v-if="colorMode.preference === item.value" class="ml-auto size-4 text-primary" />
+        <span
+          class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary/90 transition group-focus:bg-primary/16"
+        >
+          <component :is="item.icon" class="size-4" />
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold text-foreground">{{ item.label }}</p>
+          <p class="text-xs text-muted-foreground">
+            {{
+              item.value === 'light'
+                ? 'Bright interface'
+                : item.value === 'dark'
+                  ? 'Low-light workspace'
+                  : 'Match your system'
+            }}
+          </p>
+        </div>
+        <Check
+          v-if="colorMode.preference === item.value"
+          class="ml-2 size-4 shrink-0 text-primary"
+        />
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

@@ -1,14 +1,23 @@
 <template>
-  <div class="space-y-6">
+  <div v-if="viewer" class="space-y-6">
     <PageIntro
-      eyebrow="Personal workspace"
-      title="Your assets, renewals, and support threads."
-      description="The user dashboard stays narrower than the admin one on purpose. It is optimized for ownership clarity, upcoming renewals, and the latest replies on active tickets."
-    />
+      eyebrow="Workspace overview"
+      :title="`Welcome back, ${displayName}.`"
+      description="See your assigned assets, current support threads, and request activity without leaving your workspace."
+    >
+      <template #actions>
+        <Button as-child class="rounded-2xl">
+          <NuxtLink to="/app/tickets">Open a ticket</NuxtLink>
+        </Button>
+        <Button variant="outline" as-child class="rounded-2xl">
+          <NuxtLink to="/app/requests">Request an asset</NuxtLink>
+        </Button>
+      </template>
+    </PageIntro>
 
     <section class="grid gap-4 xl:grid-cols-4">
       <MetricCard
-        v-for="(metric, index) in dashboard.metrics"
+        v-for="(metric, index) in metrics"
         :key="metric.label"
         :title="metric.label"
         :value="metric.value"
@@ -22,23 +31,40 @@
       </MetricCard>
     </section>
 
-    <section class="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+    <section class="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
       <Card class="app-surface overflow-hidden">
-        <CardHeader>
-          <CardTitle>Your recurring tooling spend</CardTitle>
-          <CardDescription
-            >Only recurring services tied to your profile are included here.</CardDescription
-          >
+        <CardHeader class="gap-4 md:flex-row md:items-start md:justify-between">
+          <div class="space-y-1">
+            <CardTitle>{{ trendTitle }}</CardTitle>
+            <CardDescription>
+              Flip between asset assignments, ticket creation, and request activity over time.
+            </CardDescription>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <AppSelectField
+              v-model="trendMetric"
+              :options="trendMetricOptions"
+              placeholder="Select metric"
+              trigger-class="min-w-44"
+            />
+            <ChartPeriodPicker v-model="trendPeriod" v-model:range="customTrendRange" />
+          </div>
         </CardHeader>
         <CardContent class="space-y-6">
-          <div>
-            <p class="text-sm text-muted-foreground">Current run-rate</p>
-            <p class="mt-2 text-4xl font-semibold tracking-[-0.05em]">
-              {{ formatCurrency(recurringSpend) }}
-            </p>
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="text-sm text-muted-foreground">{{ trendValueLabel }}</p>
+              <p class="text-4xl font-semibold tracking-[-0.05em]">{{ trendTotal }}</p>
+            </div>
+            <Badge
+              variant="outline"
+              class="rounded-full border-primary/15 bg-primary/10 px-3 py-1 text-primary"
+            >
+              {{ trendSummary }}
+            </Badge>
           </div>
           <TrendChart
-            :points="dashboard.spendSeries"
+            :points="trendPoints"
             stroke="var(--color-chart-2)"
             fill="color-mix(in oklab, var(--color-chart-2) 18%, transparent)"
           />
@@ -46,17 +72,25 @@
       </Card>
 
       <Card class="app-surface overflow-hidden">
-        <CardHeader>
-          <CardTitle>What you have assigned</CardTitle>
-          <CardDescription
-            >At-a-glance distribution across hardware and subscriptions.</CardDescription
-          >
+        <CardHeader class="gap-4 md:flex-row md:items-start md:justify-between">
+          <div class="space-y-1">
+            <CardTitle>{{ distributionTitle }}</CardTitle>
+            <CardDescription>
+              Re-balance the view between your assets, ticket queue, and request flow.
+            </CardDescription>
+          </div>
+          <AppSelectField
+            v-model="distributionMode"
+            :options="distributionModeOptions"
+            placeholder="Select breakdown"
+            trigger-class="min-w-44"
+          />
         </CardHeader>
         <CardContent>
           <DistributionDonut
-            :segments="dashboard.distribution"
-            center-label="Assigned"
-            :center-value="`${dashboard.distribution.reduce((sum, item) => sum + item.value, 0)}`"
+            :segments="distributionSegments"
+            :center-label="distributionCenterLabel"
+            :center-value="distributionCenterValue"
           />
         </CardContent>
       </Card>
@@ -65,77 +99,146 @@
     <section class="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
       <Card class="app-surface overflow-hidden">
         <CardHeader>
-          <CardTitle>Renewals coming up</CardTitle>
-          <CardDescription
-            >Subscriptions and licenses that need your attention soon.</CardDescription
-          >
+          <CardTitle>Upcoming renewals</CardTitle>
+          <CardDescription>
+            Assets that are approaching renewal or expiry on your account.
+          </CardDescription>
         </CardHeader>
         <CardContent class="space-y-3">
           <NuxtLink
-            v-for="asset in dashboard.renewals"
+            v-for="asset in renewals"
             :key="asset.id"
             :to="`/app/assets/${asset.id}`"
-            class="flex items-center justify-between gap-4 rounded-3xl border border-border/70 bg-background/55 p-4 transition hover:border-primary/20 hover:bg-primary/5"
+            class="app-list-item"
           >
-            <div>
-              <p class="font-semibold">{{ asset.title }}</p>
-              <p class="text-sm text-muted-foreground">
-                {{ asset.vendor }} ·
-                {{ formatRelativeDate(asset.renewalAt ?? asset.expiresAt ?? '') }}
-              </p>
-            </div>
-            <div class="text-right">
-              <StatusBadge :status="asset.status" />
+            <div class="flex items-center justify-between gap-4">
+              <div class="space-y-2">
+                <div class="flex flex-wrap gap-2">
+                  <StatusBadge :status="asset.status" />
+                  <StatusBadge :status="asset.type" />
+                </div>
+                <div>
+                  <p class="font-semibold">{{ asset.title }}</p>
+                  <p class="text-sm text-muted-foreground">
+                    {{ asset.vendor }} | {{ formatRelativeDate(getAssetNextDate(asset)) }}
+                  </p>
+                </div>
+              </div>
+              <span class="text-xs text-muted-foreground">{{ asset.reference }}</span>
             </div>
           </NuxtLink>
 
           <div
-            v-if="!dashboard.renewals.length"
-            class="rounded-3xl border border-dashed border-border/70 bg-background/35 p-6 text-sm text-muted-foreground"
+            v-if="!renewals.length"
+            class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
           >
             Nothing is expiring soon. Your current assignments are in a healthy state.
           </div>
         </CardContent>
       </Card>
 
-      <Card class="app-surface overflow-hidden">
-        <CardHeader>
-          <CardTitle>Recent support activity</CardTitle>
-          <CardDescription>The latest movement on your ticket threads.</CardDescription>
-        </CardHeader>
-        <CardContent class="space-y-3">
-          <NuxtLink
-            v-for="ticket in dashboard.tickets"
-            :key="ticket.id"
-            :to="`/app/tickets/${ticket.id}`"
-            class="block rounded-3xl border border-border/70 bg-background/55 p-4 transition hover:border-primary/20 hover:bg-primary/5"
-          >
-            <div class="flex flex-wrap items-center gap-2">
-              <StatusBadge :status="ticket.status" />
-              <StatusBadge :status="ticket.priority" />
+      <div class="grid gap-4">
+        <Card class="app-surface overflow-hidden">
+          <CardHeader>
+            <CardTitle>Recent support activity</CardTitle>
+            <CardDescription>The latest movement on your active ticket threads.</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-3">
+            <NuxtLink
+              v-for="ticket in recentTickets"
+              :key="ticket.id"
+              :to="`/app/tickets/${ticket.id}`"
+              class="app-list-item"
+            >
+              <div class="space-y-2">
+                <div class="flex flex-wrap gap-2">
+                  <StatusBadge :status="ticket.status" />
+                  <StatusBadge :status="ticket.priority" />
+                </div>
+                <div>
+                  <p class="font-semibold">{{ ticket.subject }}</p>
+                  <p class="text-sm text-muted-foreground">
+                    {{ humanizeEnum(ticket.category) }} | Updated
+                    {{ formatRelativeDate(ticket.updatedAt) }}
+                  </p>
+                </div>
+              </div>
+            </NuxtLink>
+
+            <div
+              v-if="!recentTickets.length"
+              class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
+            >
+              You do not have any tickets yet.
             </div>
-            <p class="mt-3 font-semibold">{{ ticket.subject }}</p>
-            <p class="mt-1 text-sm text-muted-foreground">{{ ticket.preview }}</p>
-            <p class="mt-3 text-xs text-muted-foreground">
-              Updated {{ formatRelativeDate(ticket.updatedAt) }}
-            </p>
-          </NuxtLink>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card class="app-surface overflow-hidden">
+          <CardHeader>
+            <CardTitle>Latest asset requests</CardTitle>
+            <CardDescription>Track the current status of requests you opened.</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-3">
+            <NuxtLink
+              v-for="request in recentRequests"
+              :key="request.id"
+              to="/app/requests"
+              class="app-list-item"
+            >
+              <div class="space-y-2">
+                <div class="flex flex-wrap gap-2">
+                  <StatusBadge :status="request.status" />
+                  <StatusBadge v-if="request.assetType" :status="request.assetType" />
+                </div>
+                <div>
+                  <p class="font-semibold">{{ request.title }}</p>
+                  <p class="text-sm text-muted-foreground">
+                    {{ request.vendor || 'No preferred vendor' }} |
+                    {{ formatDate(request.createdAt) }}
+                  </p>
+                </div>
+              </div>
+            </NuxtLink>
+
+            <div
+              v-if="!recentRequests.length"
+              class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
+            >
+              No asset requests yet. Start one whenever you need a new tool or device.
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Boxes, CreditCard, MessageSquareMore, TimerReset } from 'lucide-vue-next';
+import { Boxes, ClipboardList, MessageSquareMore, TimerReset } from 'lucide-vue-next';
+import { getLocalTimeZone, today } from '@internationalized/date';
 import {
-  buildUserDashboard,
-  formatCurrency,
+  buildDailySeriesForRange,
+  buildHourlySeriesForDay,
+  buildMonthlySeriesForRange,
+  buildStatusDistribution,
+  buildTypeDistribution,
+  getOpenTickets,
+  getRenewingAssets,
+} from '@/lib/app-analytics';
+import {
+  formatDate,
   formatRelativeDate,
-  getAssetsForUser,
-  getRecurringMonthlySpend,
-  previewUser,
-} from '@/lib/mock-data';
+  getAssetNextDate,
+  getDisplayName,
+  humanizeEnum,
+} from '@/lib/app-formatters';
+import type {
+  ChartPeriodPreset,
+  ChartPoint,
+  DashboardMetric,
+  DistributionSegment,
+} from '@/lib/app-types';
 
 definePageMeta({
   layout: 'user',
@@ -145,8 +248,284 @@ useHead({
   title: 'My Dashboard',
 });
 
-const viewer = previewUser;
-const dashboard = buildUserDashboard(viewer.id);
-const metricIcons = [Boxes, TimerReset, MessageSquareMore, CreditCard];
-const recurringSpend = getRecurringMonthlySpend(getAssetsForUser(viewer.id));
+const api = useAssetFlowApi();
+const { currentUser, refreshSession } = useAuth();
+
+if (!currentUser.value) {
+  await refreshSession();
+}
+
+const viewer = computed(() => currentUser.value);
+
+if (!viewer.value) {
+  throw createError({ statusCode: 401, statusMessage: 'Authentication required' });
+}
+
+const [assets, tickets, requests] = await Promise.all([
+  api.fetchAssets(),
+  api.fetchTickets(),
+  api.fetchAssetRequests(),
+]);
+
+const metricIcons = [Boxes, TimerReset, MessageSquareMore, ClipboardList];
+const displayName = computed(() => getDisplayName(viewer.value));
+const openTickets = computed(() => getOpenTickets(tickets));
+const pendingRequests = computed(() => requests.filter((request) => request.status === 'PENDING'));
+const renewals = computed(() => getRenewingAssets(assets, 7).slice(0, 4));
+const recentTickets = computed(() =>
+  [...tickets]
+    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
+    .slice(0, 4),
+);
+const recentRequests = computed(() =>
+  [...requests]
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+    .slice(0, 4),
+);
+
+const metrics = computed<DashboardMetric[]>(() => [
+  {
+    label: 'Assigned assets',
+    value: `${assets.length}`,
+    delta: `${renewals.value.length} due soon`,
+    hint: 'Assets currently attached to your account.',
+  },
+  {
+    label: 'Renewals soon',
+    value: `${renewals.value.length}`,
+    delta: 'Next 7 days',
+    hint: 'Assignments that will need attention soon.',
+  },
+  {
+    label: 'Open tickets',
+    value: `${openTickets.value.length}`,
+    delta: `${tickets.filter((ticket) => ticket.status === 'PENDING_USER').length} waiting on you`,
+    hint: 'Support threads that still need movement.',
+  },
+  {
+    label: 'Pending requests',
+    value: `${pendingRequests.value.length}`,
+    delta: `${requests.filter((request) => request.status === 'FULFILLED').length} fulfilled`,
+    hint: 'Requests still waiting for review or fulfillment.',
+  },
+]);
+
+const trendMetric = ref<'ASSETS' | 'TICKETS' | 'REQUESTS'>('TICKETS');
+const trendMetricOptions: Array<{
+  label: string;
+  value: 'ASSETS' | 'TICKETS' | 'REQUESTS';
+}> = [
+  { label: 'Asset assignments', value: 'ASSETS' },
+  { label: 'Tickets opened', value: 'TICKETS' },
+  { label: 'Requests submitted', value: 'REQUESTS' },
+];
+const trendPeriod = ref<ChartPeriodPreset>('7D');
+const timeZone = getLocalTimeZone();
+const currentDay = today(timeZone);
+const customTrendRange = ref({
+  start: currentDay.subtract({ days: 13 }),
+  end: currentDay,
+});
+
+const countItemsInRange = <T,>(
+  items: T[],
+  getDate: (item: T) => string | null | undefined,
+  start: Date,
+  end: Date,
+) =>
+  items.filter((item) => {
+    const dateValue = getDate(item);
+    if (!dateValue) return false;
+
+    const current = new Date(dateValue);
+    return current >= start && current <= end;
+  }).length;
+
+const resolvedTrendRange = computed(() => {
+  const now = new Date();
+
+  if (trendPeriod.value === 'TODAY') {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    return { start, end: now, granularity: 'hour' as const };
+  }
+
+  if (trendPeriod.value === '7D') {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+    return { start, end: now, granularity: 'day' as const };
+  }
+
+  if (trendPeriod.value === '30D') {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 29);
+    start.setHours(0, 0, 0, 0);
+    return { start, end: now, granularity: 'day' as const };
+  }
+
+  const fallbackStart = new Date(now);
+  fallbackStart.setDate(fallbackStart.getDate() - 13);
+  fallbackStart.setHours(0, 0, 0, 0);
+
+  const start = customTrendRange.value.start?.toDate(timeZone) ?? fallbackStart;
+  const end = customTrendRange.value.end?.toDate(timeZone) ?? now;
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  const daySpan = Math.max(
+    1,
+    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+  );
+
+  return {
+    start,
+    end,
+    granularity: daySpan > 62 ? ('month' as const) : ('day' as const),
+  };
+});
+
+const buildTrendSeries = <T,>(items: T[], getDate: (item: T) => string | null | undefined) => {
+  if (resolvedTrendRange.value.granularity === 'hour') {
+    return buildHourlySeriesForDay(items, getDate, resolvedTrendRange.value.end);
+  }
+
+  if (resolvedTrendRange.value.granularity === 'month') {
+    return buildMonthlySeriesForRange(
+      items,
+      getDate,
+      resolvedTrendRange.value.start,
+      resolvedTrendRange.value.end,
+    );
+  }
+
+  return buildDailySeriesForRange(
+    items,
+    getDate,
+    resolvedTrendRange.value.start,
+    resolvedTrendRange.value.end,
+  );
+};
+
+const trendPoints = computed<ChartPoint[]>(() => {
+  if (trendMetric.value === 'ASSETS') {
+    return buildTrendSeries(assets, (asset) => asset.assignedAt ?? asset.createdAt);
+  }
+
+  if (trendMetric.value === 'REQUESTS') {
+    return buildTrendSeries(requests, (request) => request.createdAt);
+  }
+
+  return buildTrendSeries(tickets, (ticket) => ticket.createdAt);
+});
+
+const trendTitle = computed(() => {
+  if (trendMetric.value === 'ASSETS') return 'Assignment timeline';
+  if (trendMetric.value === 'REQUESTS') return 'Request activity';
+  return 'Ticket activity';
+});
+
+const trendValueLabel = computed(() => {
+  if (trendMetric.value === 'ASSETS') return 'Assets assigned';
+  if (trendMetric.value === 'REQUESTS') return 'Requests submitted';
+  return 'Tickets opened';
+});
+
+const trendTotal = computed(() => {
+  if (trendMetric.value === 'ASSETS') {
+    return `${countItemsInRange(
+      assets,
+      (asset) => asset.assignedAt ?? asset.createdAt,
+      resolvedTrendRange.value.start,
+      resolvedTrendRange.value.end,
+    )}`;
+  }
+
+  if (trendMetric.value === 'REQUESTS') {
+    return `${countItemsInRange(
+      requests,
+      (request) => request.createdAt,
+      resolvedTrendRange.value.start,
+      resolvedTrendRange.value.end,
+    )}`;
+  }
+
+  return `${countItemsInRange(
+    tickets,
+    (ticket) => ticket.createdAt,
+    resolvedTrendRange.value.start,
+    resolvedTrendRange.value.end,
+  )}`;
+});
+
+const trendSummary = computed(() => {
+  const latestValue = trendPoints.value.at(-1)?.value ?? 0;
+  const label =
+    trendMetric.value === 'ASSETS'
+      ? 'assignments'
+      : trendMetric.value === 'REQUESTS'
+        ? 'requests'
+        : 'tickets';
+  const periodLabel =
+    trendPeriod.value === 'TODAY'
+      ? 'today'
+      : trendPeriod.value === '7D'
+        ? 'in the last 7 days'
+        : trendPeriod.value === '30D'
+          ? 'in the last 30 days'
+          : 'in the selected range';
+
+  return `${latestValue} ${label} in the latest bucket | ${periodLabel}`;
+});
+
+const distributionMode = ref<'ASSET_TYPES' | 'ASSET_STATUS' | 'TICKET_STATUS' | 'REQUEST_STATUS'>(
+  'ASSET_TYPES',
+);
+const distributionModeOptions: Array<{
+  label: string;
+  value: 'ASSET_TYPES' | 'ASSET_STATUS' | 'TICKET_STATUS' | 'REQUEST_STATUS';
+}> = [
+  { label: 'Asset types', value: 'ASSET_TYPES' },
+  { label: 'Asset status', value: 'ASSET_STATUS' },
+  { label: 'Ticket status', value: 'TICKET_STATUS' },
+  { label: 'Request status', value: 'REQUEST_STATUS' },
+];
+
+const distributionSegments = computed<DistributionSegment[]>(() => {
+  if (distributionMode.value === 'ASSET_STATUS') {
+    return buildStatusDistribution(assets);
+  }
+
+  if (distributionMode.value === 'TICKET_STATUS') {
+    return buildStatusDistribution(tickets);
+  }
+
+  if (distributionMode.value === 'REQUEST_STATUS') {
+    return buildStatusDistribution(requests);
+  }
+
+  return buildTypeDistribution(assets);
+});
+
+const distributionTitle = computed(() => {
+  if (distributionMode.value === 'ASSET_STATUS') return 'Asset status mix';
+  if (distributionMode.value === 'TICKET_STATUS') return 'Ticket status mix';
+  if (distributionMode.value === 'REQUEST_STATUS') return 'Request status mix';
+  return 'Asset type mix';
+});
+
+const distributionCenterLabel = computed(() =>
+  distributionMode.value === 'REQUEST_STATUS'
+    ? 'Requests'
+    : distributionMode.value === 'TICKET_STATUS'
+      ? 'Tickets'
+      : 'Assets',
+);
+const distributionCenterValue = computed(() =>
+  distributionMode.value === 'REQUEST_STATUS'
+    ? `${requests.length}`
+    : distributionMode.value === 'TICKET_STATUS'
+      ? `${tickets.length}`
+      : `${assets.length}`,
+);
 </script>

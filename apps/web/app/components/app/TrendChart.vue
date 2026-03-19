@@ -34,7 +34,12 @@
         />
       </g>
     </svg>
-    <div class="grid grid-cols-6 gap-2 text-xs text-muted-foreground">
+    <div
+      class="grid gap-2 text-xs text-muted-foreground"
+      :style="{
+        gridTemplateColumns: `repeat(${Math.max(props.points.length, 1)}, minmax(0, 1fr))`,
+      }"
+    >
       <div v-for="point in props.points" :key="point.label" class="text-center font-medium">
         {{ point.label }}
       </div>
@@ -43,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ChartPoint } from '@/lib/mock-data';
+import type { ChartPoint } from '@/lib/app-types';
 
 const props = withDefaults(
   defineProps<{

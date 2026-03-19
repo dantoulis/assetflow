@@ -1,0 +1,35 @@
+<template>
+  <SelectTrigger
+    data-slot="select-trigger"
+    v-bind="{ ...$attrs, ...forwarded }"
+    :class="
+      cn(
+        'border-input bg-background/82 ring-offset-background focus-visible:ring-ring data-[placeholder]:text-muted-foreground flex h-11 w-full items-center justify-between gap-3 rounded-2xl border px-4 py-2 text-sm shadow-sm outline-hidden transition focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50',
+        props.class,
+      )
+    "
+  >
+    <slot />
+    <SelectIcon as-child>
+      <ChevronDown class="size-4 shrink-0 text-muted-foreground" />
+    </SelectIcon>
+  </SelectTrigger>
+</template>
+
+<script setup lang="ts">
+import type { SelectTriggerProps } from 'reka-ui';
+import type { HTMLAttributes } from 'vue';
+import { reactiveOmit } from '@vueuse/core';
+import { ChevronDown } from 'lucide-vue-next';
+import { SelectIcon, SelectTrigger, useForwardProps } from 'reka-ui';
+import { cn } from '@/lib/utils';
+
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps<SelectTriggerProps & { class?: HTMLAttributes['class'] }>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+const forwarded = useForwardProps(delegatedProps);
+</script>

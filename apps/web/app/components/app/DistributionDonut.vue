@@ -5,11 +5,11 @@
       <div
         class="absolute inset-5 rounded-full border border-border/60 bg-background/95 backdrop-blur"
       />
-      <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+      <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {{ centerLabel }}
         </p>
-        <p class="mt-2 text-3xl font-semibold tracking-[-0.04em]">{{ centerValue }}</p>
+        <p class="text-3xl font-semibold tracking-[-0.04em]">{{ centerValue }}</p>
       </div>
     </div>
     <div class="space-y-3">
@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DistributionSegment } from '@/lib/mock-data';
+import type { DistributionSegment } from '@/lib/app-types';
 
 const props = defineProps<{
   segments: DistributionSegment[];

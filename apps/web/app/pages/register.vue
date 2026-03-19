@@ -1,44 +1,27 @@
 <template>
-  <Card class="app-surface overflow-hidden border-border/70 dark:border-white/10">
-    <CardContent class="space-y-8 p-6 md:p-8">
-      <div class="space-y-3">
+  <Card class="app-surface overflow-hidden border-border/70 dark:border-white/10 lg:h-full">
+    <CardContent class="grid gap-8 p-6 md:p-8 lg:h-full lg:grid-rows-[auto_1fr_auto]">
+      <div class="grid gap-3">
         <div
-          class="inline-flex rounded-full border border-primary/20 bg-primary/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
+          class="inline-flex w-fit rounded-full border border-primary/20 bg-primary/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
         >
           Register
         </div>
-        <div class="space-y-2">
+        <div class="grid gap-2">
           <h1 class="text-3xl font-semibold tracking-[-0.05em]">Create an account</h1>
           <p class="text-sm leading-6 text-muted-foreground">
-            Registration now talks to the backend. The app surfaces still use preview data until the
-            rest of the real auth flow is finished.
+            Set up your workspace identity so you can receive assets, open support tickets, and
+            request new tools.
           </p>
         </div>
       </div>
 
-      <div class="grid gap-3 md:grid-cols-2">
-        <div class="rounded-3xl border border-border/70 bg-muted/55 p-4 dark:bg-background/55">
-          <div class="mb-3 inline-flex rounded-2xl bg-primary/15 p-2 text-primary">
-            <UserPlus class="size-4" />
-          </div>
-          <p class="font-semibold">What this phase covers</p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
-            Register, login, logout, and session hydration against the backend auth endpoints.
-          </p>
+      <form class="grid content-start gap-5" @submit.prevent="handleRegister">
+        <div class="grid gap-2">
+          <Label for="name">Full name</Label>
+          <Input id="name" v-model="form.name" class="h-12 rounded-2xl" placeholder="Ava Morgan" />
         </div>
-        <div class="rounded-3xl border border-border/70 bg-muted/55 p-4 dark:bg-background/55">
-          <div class="mb-3 inline-flex rounded-2xl bg-chart-2/18 p-2 text-chart-2">
-            <Sparkles class="size-4" />
-          </div>
-          <p class="font-semibold">What stays mocked</p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
-            Dashboard data, assets, tickets, and profile surfaces remain preview-only for now.
-          </p>
-        </div>
-      </div>
-
-      <form class="space-y-5" @submit.prevent="handleRegister">
-        <div class="space-y-2">
+        <div class="grid gap-2">
           <Label for="username">Username</Label>
           <Input
             id="username"
@@ -47,7 +30,7 @@
             placeholder="ava.morgan"
           />
         </div>
-        <div class="space-y-2">
+        <div class="grid gap-2">
           <Label for="email">Email</Label>
           <Input
             id="email"
@@ -57,7 +40,7 @@
             placeholder="ava@assetflow.dev"
           />
         </div>
-        <div class="space-y-2">
+        <div class="grid gap-2">
           <Label for="password">Password</Label>
           <Input
             id="password"
@@ -87,7 +70,6 @@
 </template>
 
 <script setup lang="ts">
-import { Sparkles, UserPlus } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 definePageMeta({
@@ -101,6 +83,7 @@ useHead({
 const { register } = useAuth();
 
 const form = reactive({
+  name: '',
   username: '',
   email: '',
   password: '',
@@ -117,14 +100,15 @@ const handleRegister = async () => {
   pending.value = true;
 
   try {
-    await register({
+    const user = await register({
+      name: form.name.trim() || undefined,
       username: form.username.trim(),
       email: form.email.trim(),
       password: form.password,
     });
 
     toast.success('Account created');
-    await navigateTo('/app/dashboard');
+    await navigateTo(user.role === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard');
   } catch {
     toast.error('Unable to register', {
       description: 'Check the values and try again.',

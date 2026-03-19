@@ -7,18 +7,20 @@
         >
           Recovery
         </div>
-        <h1 class="text-3xl font-semibold tracking-[-0.05em]">Password recovery comes later</h1>
+        <h1 class="text-3xl font-semibold tracking-[-0.05em]">
+          Password recovery is not enabled yet
+        </h1>
         <p class="text-sm leading-6 text-muted-foreground">
-          This page is intentionally present in the frontend pass so the auth flow feels complete.
-          The actual email recovery mechanics will be wired once the API phase starts.
+          This route is reserved for the email recovery flow. Once reset tokens are introduced, the
+          same screen will handle the recovery request without changing the rest of the auth layout.
         </p>
       </div>
 
       <div
         class="rounded-3xl border border-border/70 bg-muted/55 p-4 text-sm leading-6 text-muted-foreground dark:bg-background/55"
       >
-        For now, use one of the demo logins on the sign-in page. The reset path is already reserved
-        in the UI and can be connected later without changing the visual structure.
+        Until that backend flow is added, use the seeded workspace account you already have and
+        return here once recovery is supported.
       </div>
 
       <div class="flex flex-wrap gap-3">
@@ -26,7 +28,7 @@
           <NuxtLink to="/login">Back to login</NuxtLink>
         </Button>
         <Button variant="outline" as-child class="rounded-2xl">
-          <NuxtLink to="/reset-password">Preview reset screen</NuxtLink>
+          <NuxtLink to="/reset-password">View reset route</NuxtLink>
         </Button>
       </div>
     </CardContent>

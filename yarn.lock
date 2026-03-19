@@ -1733,7 +1733,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@internationalized/date@npm:^3.5.0":
+"@internationalized/date@npm:^3.12.0, @internationalized/date@npm:^3.5.0":
   version: 3.12.0
   resolution: "@internationalized/date@npm:3.12.0"
   dependencies:
@@ -15935,6 +15935,7 @@ __metadata:
   resolution: "web@workspace:apps/web"
   dependencies:
     "@eslint/js": "npm:^9.18.0"
+    "@internationalized/date": "npm:^3.12.0"
     "@nuxt/eslint": "npm:1.15.2"
     "@nuxt/fonts": "npm:^0.14.0"
     "@nuxt/icon": "npm:^2.2.1"

@@ -1,23 +1,23 @@
 <template>
   <Card class="app-surface overflow-hidden border-border/70 py-0 dark:border-white/10">
-    <CardContent class="space-y-8 p-6 md:p-8">
-      <div class="space-y-3">
+    <CardContent class="grid gap-8 p-6 md:p-8">
+      <div class="grid gap-3">
         <div
-          class="inline-flex rounded-full border border-primary/20 bg-primary/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
+          class="inline-flex w-fit rounded-full border border-primary/20 bg-primary/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
         >
           Sign in
         </div>
-        <div class="space-y-2">
+        <div class="grid gap-2">
           <h1 class="text-3xl font-semibold tracking-[-0.05em]">Sign in to AssetFlow</h1>
           <p class="text-sm leading-6 text-muted-foreground">
-            Backend auth is now wired in. The dashboards still render preview data while the real
-            frontend session flow is being built out.
+            Use your workspace credentials to access assigned assets, support tickets, and request
+            workflows.
           </p>
         </div>
       </div>
 
-      <form class="space-y-5" @submit.prevent="handleSubmit">
-        <div class="space-y-2">
+      <form class="grid gap-5" @submit.prevent="handleSubmit">
+        <div class="grid gap-2">
           <Label for="username">Username</Label>
           <Input
             id="username"
@@ -26,7 +26,7 @@
             class="h-12 rounded-2xl"
           />
         </div>
-        <div class="space-y-2">
+        <div class="grid gap-2">
           <div class="flex items-center justify-between">
             <Label for="password">Password</Label>
             <NuxtLink to="/forgot-password" class="text-sm font-medium text-primary hover:underline"
@@ -56,7 +56,7 @@
       </form>
 
       <p class="text-center text-sm text-muted-foreground">
-        New to assetFlow?
+        New to AssetFlow?
         <NuxtLink to="/register" class="font-semibold text-primary hover:underline"
           >Create account</NuxtLink
         >

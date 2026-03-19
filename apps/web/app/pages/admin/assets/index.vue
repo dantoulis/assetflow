@@ -3,158 +3,114 @@
     <PageIntro
       eyebrow="Inventory"
       title="Assets, subscriptions, and renewal pressure."
-      description="This table is designed for assignment work, renewals, and support triage. Every record exposes ownership, cost, vendor, and the next operational date."
-    >
-      <template #actions>
-        <Button
-          class="rounded-2xl"
-          @click="toast.message('Assign flow is mocked until the API phase.')"
-          >Assign asset</Button
-        >
-        <Button
-          variant="outline"
-          class="rounded-2xl"
-          @click="toast.message('Bulk renewals will be connected to backend jobs later.')"
-          >Renew subscriptions</Button
-        >
-      </template>
-    </PageIntro>
+      description="Scan the inventory, filter by type or status, and drill into anything that needs attention."
+    />
 
     <section class="grid gap-4 xl:grid-cols-4">
       <MetricCard
         title="Total assets"
-        :value="`${mockAssets.length}`"
+        :value="`${assets.length}`"
         delta="All categories"
-        hint="Hardware, subscriptions, licenses, and peripherals."
+        hint="Every hardware and software asset currently tracked."
       >
         <template #icon><Boxes class="size-5" /></template>
       </MetricCard>
       <MetricCard
-        title="Assigned"
-        :value="`${mockAssets.filter((asset) => asset.ownerId).length}`"
-        delta="1 waiting"
-        hint="Assets currently attached to a user profile."
+        title="Active"
+        :value="`${activeCount}`"
+        delta="Healthy inventory"
+        hint="Assets currently in a healthy operational state."
         tone="success"
       >
-        <template #icon><CreditCard class="size-5" /></template>
+        <template #icon><CircleCheckBig class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Renewing soon"
-        :value="`${getExpiringAssets(14).length}`"
-        delta="14-day window"
-        hint="Subscriptions and licenses likely to need admin action."
+        :value="`${renewingSoon.length}`"
+        delta="21-day window"
+        hint="Assets likely to need follow-up soon."
         tone="warning"
       >
         <template #icon><CalendarClock class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Repair queue"
-        :value="`${mockAssets.filter((asset) => asset.status === 'IN_REPAIR').length}`"
+        :value="`${repairCount}`"
         delta="Hardware"
-        hint="Physical inventory currently blocked or being serviced."
+        hint="Assets currently blocked or being serviced."
         tone="neutral"
       >
         <template #icon><Wrench class="size-5" /></template>
       </MetricCard>
     </section>
 
-    <section class="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
-      <Card class="app-surface overflow-hidden">
-        <CardHeader>
+    <Card class="app-surface overflow-hidden">
+      <CardHeader class="gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
           <CardTitle>Asset directory</CardTitle>
-          <CardDescription
-            >Structured for assignment, renewal, and ownership changes.</CardDescription
-          >
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Asset</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Next date</TableHead>
-                <TableHead class="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-for="asset in mockAssets" :key="asset.id">
-                <TableCell>
-                  <NuxtLink
-                    :to="`/admin/assets/${asset.id}`"
-                    class="font-semibold hover:text-primary"
-                    >{{ asset.title }}</NuxtLink
-                  >
-                  <div class="mt-1 flex flex-wrap gap-2">
-                    <StatusBadge :status="asset.type" />
-                    <span class="text-xs text-muted-foreground">{{ asset.vendor }}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{{ getUserById(asset.ownerId)?.name ?? 'Unassigned' }}</TableCell>
-                <TableCell><StatusBadge :status="asset.status" /></TableCell>
-                <TableCell>{{
-                  formatRelativeDate(asset.renewalAt ?? asset.expiresAt ?? '')
-                }}</TableCell>
-                <TableCell class="text-right">{{
-                  formatCurrency(asset.amount, asset.currency)
-                }}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Card class="app-surface overflow-hidden">
-        <CardHeader>
-          <CardTitle>Recurring run-rate</CardTitle>
-          <CardDescription
-            >Current recurring spend from active subscriptions and licenses.</CardDescription
-          >
-        </CardHeader>
-        <CardContent class="space-y-6">
-          <div>
-            <p class="text-sm text-muted-foreground">Monthly normalized spend</p>
-            <p class="mt-2 text-4xl font-semibold tracking-[-0.05em]">
-              {{ formatCurrency(recurringMonthlySpend) }}
-            </p>
-          </div>
-          <div class="space-y-3">
-            <div
-              v-for="asset in getExpiringAssets(21)"
-              :key="asset.id"
-              class="rounded-3xl border border-border/70 bg-background/55 p-4"
-            >
-              <div class="flex items-center justify-between gap-3">
-                <div>
-                  <p class="font-semibold">{{ asset.title }}</p>
-                  <p class="text-sm text-muted-foreground">
-                    {{ getUserById(asset.ownerId)?.name ?? 'Unassigned' }}
-                  </p>
-                </div>
+          <CardDescription>Filter by type and status to focus the inventory view.</CardDescription>
+        </div>
+        <div class="grid gap-3 md:grid-cols-2">
+          <AppSelectField
+            v-model="typeFilter"
+            :options="typeFilterOptions"
+            placeholder="All asset types"
+            trigger-class="min-w-44"
+          />
+          <AppSelectField
+            v-model="statusFilter"
+            :options="statusFilterOptions"
+            placeholder="All statuses"
+            trigger-class="min-w-44"
+          />
+        </div>
+      </CardHeader>
+      <CardContent class="space-y-3">
+        <NuxtLink
+          v-for="asset in filteredAssets"
+          :key="asset.id"
+          :to="`/admin/assets/${asset.id}`"
+          class="app-list-item"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="space-y-2">
+              <div class="flex flex-wrap gap-2">
+                <StatusBadge :status="asset.type" />
                 <StatusBadge :status="asset.status" />
               </div>
-              <p class="mt-3 text-sm text-muted-foreground">
-                {{ formatRelativeDate(asset.renewalAt ?? asset.expiresAt ?? '') }}
-              </p>
+              <div>
+                <p class="font-semibold">{{ asset.title }}</p>
+                <p class="text-sm text-muted-foreground">
+                  {{ asset.vendor }} · {{ ownerName(asset.userId) }} ·
+                  {{ formatRelativeDate(getAssetNextDate(asset)) }}
+                </p>
+              </div>
             </div>
+            <span class="text-xs text-muted-foreground">{{ asset.reference }}</span>
           </div>
-        </CardContent>
-      </Card>
-    </section>
+        </NuxtLink>
+
+        <div
+          v-if="!filteredAssets.length"
+          class="rounded-3xl border border-dashed border-border/70 bg-background/35 p-6 text-sm text-muted-foreground"
+        >
+          No assets match the current filters.
+        </div>
+      </CardContent>
+    </Card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Boxes, CalendarClock, CreditCard, Wrench } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
+import { Boxes, CalendarClock, CircleCheckBig, Wrench } from 'lucide-vue-next';
+import { getRenewingAssets } from '@/lib/app-analytics';
 import {
-  formatCurrency,
   formatRelativeDate,
-  getExpiringAssets,
-  getRecurringMonthlySpend,
-  getUserById,
-  mockAssets,
-} from '@/lib/mock-data';
+  getAssetNextDate,
+  getDisplayName,
+  humanizeEnum,
+} from '@/lib/app-formatters';
+import type { AppAsset, AppUser, AssetStatus, AssetType } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -164,5 +120,38 @@ useHead({
   title: 'Assets',
 });
 
-const recurringMonthlySpend = getRecurringMonthlySpend(mockAssets);
+const api = useAssetFlowApi();
+const [assetsData, users] = await Promise.all([api.fetchAssets(), api.fetchUsers()]);
+const assets = ref<AppAsset[]>(assetsData);
+const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERAL'];
+const statuses: AssetStatus[] = ['ACTIVE', 'EXPIRING_SOON', 'EXPIRED', 'IN_REPAIR'];
+const typeFilter = ref<'ALL' | AssetType>('ALL');
+const statusFilter = ref<'ALL' | AssetStatus>('ALL');
+const typeFilterOptions = [
+  { label: 'All asset types', value: 'ALL' },
+  ...assetTypes.map((type) => ({ label: humanizeEnum(type), value: type })),
+] as Array<{ label: string; value: 'ALL' | AssetType }>;
+const statusFilterOptions = [
+  { label: 'All statuses', value: 'ALL' },
+  ...statuses.map((status) => ({ label: humanizeEnum(status), value: status })),
+] as Array<{ label: string; value: 'ALL' | AssetStatus }>;
+
+const userMap = computed(
+  () => Object.fromEntries(users.map((user) => [user.id, user])) as Record<number, AppUser>,
+);
+const ownerName = (userId: number) => getDisplayName(userMap.value[userId]);
+const activeCount = computed(
+  () => assets.value.filter((asset) => asset.status === 'ACTIVE').length,
+);
+const repairCount = computed(
+  () => assets.value.filter((asset) => asset.status === 'IN_REPAIR').length,
+);
+const renewingSoon = computed(() => getRenewingAssets(assets.value, 21));
+const filteredAssets = computed(() =>
+  assets.value.filter((asset) => {
+    if (typeFilter.value !== 'ALL' && asset.type !== typeFilter.value) return false;
+    if (statusFilter.value !== 'ALL' && asset.status !== statusFilter.value) return false;
+    return true;
+  }),
+);
 </script>

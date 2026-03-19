@@ -3,89 +3,84 @@
     <DropdownMenuTrigger as-child>
       <Button
         variant="outline"
-        class="h-auto rounded-2xl border-white/10 bg-background/60 px-2.5 py-2 backdrop-blur"
+        class="h-auto rounded-2xl border-border/70 bg-card/78 px-2.5 py-2 shadow-sm backdrop-blur transition hover:bg-card"
       >
         <Avatar class="size-9 border border-white/10">
           <AvatarFallback class="bg-primary/15 font-semibold text-primary">
-            {{ menuUser.initials }}
+            {{ initials }}
           </AvatarFallback>
         </Avatar>
-        <div class="hidden text-left md:block">
-          <p class="text-sm font-semibold leading-none">{{ menuUser.name }}</p>
-          <p class="mt-1 text-xs text-muted-foreground">
-            {{ isAuthenticated ? 'Authenticated session' : 'Preview data mode' }}
-          </p>
+        <div class="hidden space-y-1 text-left md:block">
+          <p class="text-sm font-semibold leading-none">{{ displayName }}</p>
+          <p class="text-xs text-muted-foreground">{{ currentUser?.email }}</p>
         </div>
       </Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="w-64 rounded-2xl">
-      <DropdownMenuLabel class="pb-2">
-        <div class="space-y-1">
-          <p class="font-semibold">{{ menuUser.name }}</p>
-          <p class="text-xs font-normal text-muted-foreground">{{ menuUser.email }}</p>
+    <DropdownMenuContent align="end" class="w-72 p-2.5">
+      <DropdownMenuLabel class="rounded-2xl border border-border/70 bg-accent/45 px-3.5 py-3.5">
+        <div class="flex items-start gap-3">
+          <Avatar class="size-11 shrink-0 border border-white/10 shadow-sm">
+            <AvatarFallback class="bg-primary/15 font-semibold text-primary">
+              {{ initials }}
+            </AvatarFallback>
+          </Avatar>
+          <div class="min-w-0 space-y-1">
+            <p class="truncate text-sm font-semibold text-foreground">{{ displayName }}</p>
+            <p class="truncate text-xs font-medium text-muted-foreground">
+              {{ currentUser?.email }}
+            </p>
+            <p class="pt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary/85">
+              {{ currentUser?.role === 'ADMIN' ? 'Administrator' : 'Team member' }}
+            </p>
+          </div>
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
-      <DropdownMenuItem
-        class="gap-2"
-        @click="
-          toast.message(
-            isAuthenticated
-              ? 'Backend auth is active while the dashboards still render preview data.'
-              : 'Route access is open while the real auth flow is being wired.',
-          )
-        "
-      >
-        <ShieldCheck class="size-4 text-muted-foreground" />
-        <span>{{ isAuthenticated ? 'Signed in' : 'Preview mode' }}</span>
+      <DropdownMenuItem class="group px-3.5 py-3" @click="navigateTo(accountPath)">
+        <span
+          class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-focus:bg-primary/16"
+        >
+          <ShieldCheck class="size-4" />
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold text-foreground">Account settings</p>
+          <p class="truncate text-xs text-muted-foreground">View and update your profile</p>
+        </div>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem
-        v-if="isAuthenticated"
-        class="gap-2 text-destructive focus:text-destructive"
+        class="group px-3.5 py-3 text-destructive focus:text-destructive"
         @click="handleSignOut"
       >
-        <LogOut class="size-4" />
-        <span>Sign out</span>
-      </DropdownMenuItem>
-      <DropdownMenuItem v-else class="gap-2" @click="navigateTo('/login')">
-        <LogIn class="size-4 text-muted-foreground" />
-        <span>Go to login</span>
+        <span
+          class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive transition group-focus:bg-destructive/16"
+        >
+          <LogOut class="size-4" />
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold">Sign out</p>
+          <p class="truncate text-xs text-destructive/80">End this session and return to login</p>
+        </div>
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 </template>
 
 <script setup lang="ts">
-import { LogIn, LogOut, ShieldCheck } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import { getUserByEmail, previewAdminUser, previewUser } from '@/lib/mock-data';
+import { LogOut, ShieldCheck } from 'lucide-vue-next';
+import { getDisplayName, getInitials } from '@/lib/app-formatters';
 
 const route = useRoute();
-const { currentUser, isAuthenticated, logout } = useAuth();
+const { currentUser, logout } = useAuth();
 
-const previewContextUser = computed(() => {
-  return route.path.startsWith('/admin') ? previewAdminUser : previewUser;
-});
-
-const menuUser = computed(() => {
-  if (!currentUser.value) return previewContextUser.value;
-
-  const matchedUser = getUserByEmail(currentUser.value.email);
-
-  if (matchedUser) return matchedUser;
-
-  return {
-    initials: currentUser.value.username.slice(0, 2).toUpperCase(),
-    name: currentUser.value.username,
-    email: currentUser.value.email,
-    role: currentUser.value.role,
-  };
-});
+const accountPath = computed(() =>
+  route.path.startsWith('/admin') ? '/admin/account' : '/app/account',
+);
+const displayName = computed(() => getDisplayName(currentUser.value));
+const initials = computed(() => getInitials(currentUser.value));
 
 const handleSignOut = async () => {
   await logout();
-  toast.success('Signed out');
   await navigateTo('/login');
 };
 </script>
