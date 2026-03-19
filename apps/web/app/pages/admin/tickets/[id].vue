@@ -166,6 +166,7 @@ const route = useRoute();
 const ticketId = Number(route.params.id);
 const assetsStore = useAssetsStore();
 const ticketsStore = useTicketsStore();
+const ticketThreadSyncStore = useTicketThreadSyncStore();
 const usersStore = useUsersStore();
 const { currentUser, refreshSession } = useAuth();
 
@@ -186,6 +187,14 @@ await Promise.all([
   assetsStore.fetchAll(),
   ticketsStore.fetchMessages(ticketId),
 ]);
+
+onMounted(() => {
+  ticketThreadSyncStore.startTicketThreadSync(ticketId);
+});
+
+onBeforeUnmount(() => {
+  ticketThreadSyncStore.stopTicketThreadSync(ticketId);
+});
 
 const { byId: userMap } = storeToRefs(usersStore);
 const { assets } = storeToRefs(assetsStore);

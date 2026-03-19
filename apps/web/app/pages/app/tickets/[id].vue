@@ -98,6 +98,7 @@ const route = useRoute();
 const ticketId = Number(route.params.id);
 const assetsStore = useAssetsStore();
 const ticketsStore = useTicketsStore();
+const ticketThreadSyncStore = useTicketThreadSyncStore();
 const { currentUser, refreshSession } = useAuth();
 
 if (!currentUser.value) {
@@ -123,6 +124,14 @@ if (ticketValue.assetId) {
 }
 
 await ticketsStore.fetchMessages(ticketId);
+
+onMounted(() => {
+  ticketThreadSyncStore.startTicketThreadSync(ticketId);
+});
+
+onBeforeUnmount(() => {
+  ticketThreadSyncStore.stopTicketThreadSync(ticketId);
+});
 
 const { byId: ticketMap, messagesByTicketId } = storeToRefs(ticketsStore);
 const ticket = computed<AppTicket>(() => ticketMap.value[ticketId] ?? ticketValue);
