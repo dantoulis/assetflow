@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role, TicketMessage, TicketStatus } from '../generated/prisma/client';
@@ -19,7 +24,7 @@ export class TicketMessagesService {
     return this.prisma.ticketMessage.findMany({
       where: {
         ticketId: ticket.id,
-        internal: isAdmin,
+        ...(isAdmin ? {} : { internal: false }),
       },
       orderBy: { createdAt: 'asc' },
     });
@@ -39,6 +44,10 @@ export class TicketMessagesService {
 
     const isAdmin = user.role === Role.ADMIN;
     const isInternal = createTicketMessageDto.internal ?? false;
+
+    if (ticket.status === TicketStatus.RESOLVED) {
+      throw new BadRequestException('Resolved tickets cannot receive new replies');
+    }
 
     if (isInternal && !isAdmin) {
       throw new ForbiddenException('Only admins can create internal ticket messages');

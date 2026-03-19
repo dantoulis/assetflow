@@ -15,8 +15,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello from NestJS!"', () => {
-      expect(appController.sayHello()).toBe('Hello from NestJS!');
+    it('should return "Healthy"', () => {
+      expect(appController.healthCheck()).toBe('Healthy');
     });
   });
 });

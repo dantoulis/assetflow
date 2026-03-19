@@ -139,10 +139,21 @@ export class AssetRequestsService {
       throw new BadRequestException('Fulfilled asset requests cannot be reviewed again');
     }
 
+    const rejectionReason = reviewAssetRequestDto.rejectionReason?.trim();
+
+    if (
+      reviewAssetRequestDto.status === AssetRequestStatus.REJECTED &&
+      (!rejectionReason || rejectionReason.length === 0)
+    ) {
+      throw new BadRequestException('Rejected asset requests require a reason');
+    }
+
     return this.prisma.assetRequest.update({
       where: { id },
       data: {
         status: reviewAssetRequestDto.status,
+        rejectionReason:
+          reviewAssetRequestDto.status === AssetRequestStatus.REJECTED ? rejectionReason : null,
         reviewedById: user.sub,
         reviewedAt: new Date(),
       },

@@ -36,6 +36,7 @@ model AssetRequest {
   assetType        AssetType?
   vendor           String?
   justification    String?            @db.Text
+  rejectionReason  String?            @db.Text
   status           AssetRequestStatus @default(PENDING)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
