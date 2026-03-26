@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
@@ -13,9 +18,47 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
   private readonly saltOrRounds = 10;
 
+  private async isExistingUser(createUserDto: CreateUserDto): Promise<boolean> {
+    const { username, email } = createUserDto;
+
+    const foundUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          {
+            username: {
+              equals: username.trim().toLowerCase(),
+              mode: 'insensitive',
+            },
+          },
+          {
+            email: {
+              equals: email.trim().toLowerCase(),
+              mode: 'insensitive',
+            },
+          },
+        ],
+      },
+      select: { id: true },
+    });
+
+    return Boolean(foundUser);
+  }
+
   async create(createUserDto: CreateUserDto): Promise<SafeUser> {
+    const isExistingUser = await this.isExistingUser(createUserDto);
+
+    if (isExistingUser) {
+      throw new ConflictException('User already exists');
+    }
+
     const hasPassword = await bcrypt.hash(createUserDto.password, this.saltOrRounds);
-    const data = { ...createUserDto, password: hasPassword, role: Role.USER };
+    const data = {
+      ...createUserDto,
+      username: createUserDto.username,
+      email: createUserDto.email,
+      password: hasPassword,
+      role: Role.USER,
+    };
     return await this.prisma.user.create({
       data,
       omit: {

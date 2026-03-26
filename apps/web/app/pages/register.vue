@@ -70,6 +70,7 @@
 </template>
 
 <script setup lang="ts">
+import type { IFetchError } from 'ofetch';
 import { toast } from 'vue-sonner';
 
 definePageMeta({
@@ -103,13 +104,21 @@ const handleRegister = async () => {
     const user = await register({
       name: form.name.trim() || undefined,
       username: form.username.trim(),
-      email: form.email.trim(),
+      email: form.email.trim().toLowerCase(),
       password: form.password,
     });
 
     toast.success('Account created');
     await navigateTo(user.role === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard');
-  } catch {
+  } catch (error: unknown) {
+    const createUserError = error as IFetchError;
+    if (createUserError.statusCode === 409) {
+      toast.error('Please use another email or username.', {
+        description: createUserError.data?.message,
+      });
+      return;
+    }
+
     toast.error('Unable to register', {
       description: 'Check the values and try again.',
     });
