@@ -31,12 +31,11 @@
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
 
     <SidebarInset>
       <header
-        class="sticky top-0 z-20 flex h-20 items-center border-b border-border/60 bg-background/72 px-4 py-4 backdrop-blur md:px-6"
+        class="sticky top-0 z-20 flex h-20 items-center border-b border-border/60 bg-background/72 px-4 py-4 backdrop-blur md:top-2 md:px-6"
       >
         <div class="flex w-full flex-wrap items-center gap-3">
           <div class="flex items-center gap-3">
