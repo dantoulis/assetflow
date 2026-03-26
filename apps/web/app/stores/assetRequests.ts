@@ -40,6 +40,12 @@ export const useAssetRequestsStore = defineStore('assetRequests', () => {
   );
   const statusDistribution = computed(() => buildStatusDistribution(requests.value));
 
+  const resetStoreState = () => {
+    requests.value = [];
+    isLoaded.value = false;
+    isLoading.value = false;
+  };
+
   const replaceAll = (nextRequests: AppAssetRequest[]) => {
     requests.value = nextRequests;
     isLoaded.value = true;
@@ -140,6 +146,7 @@ export const useAssetRequestsStore = defineStore('assetRequests', () => {
     statusDistribution,
     isLoaded,
     isLoading,
+    resetStoreState,
     fetchAll,
     fetchOne,
     createRequest,

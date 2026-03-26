@@ -21,6 +21,12 @@ export const useUsersStore = defineStore('users', () => {
   );
   const teamCounts = computed(() => getUserCountsByTeam(managedUsers.value));
 
+  const resetStoreState = () => {
+    users.value = [];
+    isLoaded.value = false;
+    isLoading.value = false;
+  };
+
   const replaceAll = (nextUsers: AppUser[]) => {
     users.value = nextUsers;
     isLoaded.value = true;
@@ -96,6 +102,7 @@ export const useUsersStore = defineStore('users', () => {
     teamCounts,
     isLoaded,
     isLoading,
+    resetStoreState,
     fetchAll,
     fetchOne,
     updateUser,

@@ -29,6 +29,12 @@ export const useAssetsStore = defineStore('assets', () => {
   const statusDistribution = computed(() => buildStatusDistribution(assets.value));
   const typeDistribution = computed(() => buildTypeDistribution(assets.value));
 
+  const resetStoreState = () => {
+    assets.value = [];
+    isLoaded.value = false;
+    isLoading.value = false;
+  };
+
   const replaceAll = (nextAssets: AppAsset[]) => {
     assets.value = nextAssets;
     isLoaded.value = true;
@@ -90,6 +96,7 @@ export const useAssetsStore = defineStore('assets', () => {
     typeDistribution,
     isLoaded,
     isLoading,
+    resetStoreState,
     fetchAll,
     fetchOne,
     byUserId,

@@ -1,4 +1,8 @@
 import type { AppUser } from '@/lib/app-types';
+import { useAssetsStore } from '../stores/assets';
+import { useTicketsStore } from '../stores/tickets';
+import { useAssetRequestsStore } from '../stores/assetRequests';
+import { useUsersStore } from '../stores/users';
 
 interface LoginPayload {
   username: string;
@@ -16,7 +20,7 @@ export const useAuth = () => {
   const config = useRuntimeConfig();
   const apiBase = config.public.apiBase;
   const request = async <T>(path: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
-    const cookieHeaders = process.server ? useRequestHeaders(['cookie']) : undefined;
+    const cookieHeaders = import.meta.server ? useRequestHeaders(['cookie']) : undefined;
 
     return $fetch<T>(path, {
       baseURL: apiBase,
@@ -41,6 +45,18 @@ export const useAuth = () => {
 
   const isAuthenticated = computed(() => Boolean(currentUser.value));
 
+  const resetPiniaState = () => {
+    const usersStore = useUsersStore();
+    const ticketsStore = useTicketsStore();
+    const assetRequestsStore = useAssetRequestsStore();
+    const assetsStore = useAssetsStore();
+
+    usersStore.resetStoreState();
+    ticketsStore.resetStoreState();
+    assetRequestsStore.resetStoreState();
+    assetsStore.resetStoreState();
+  };
+
   const refreshSession = async () => {
     if (isInitializing.value) return currentUser.value;
 
@@ -48,11 +64,18 @@ export const useAuth = () => {
 
     try {
       const user = await request<AppUser>('/auth/me');
+      const currentUserId = currentUser.value?.id;
 
-      currentUser.value = user;
+      setCurrentUser(user);
+
+      if (user.id !== currentUserId) {
+        resetPiniaState();
+      }
+
       return user;
     } catch {
-      currentUser.value = null;
+      setCurrentUser(null);
+      resetPiniaState();
       return null;
     } finally {
       isInitialized.value = true;
@@ -66,8 +89,7 @@ export const useAuth = () => {
       body: payload,
     });
 
-    currentUser.value = user;
-    isInitialized.value = true;
+    await refreshSession();
     return user;
   };
 
@@ -77,8 +99,7 @@ export const useAuth = () => {
       body: payload,
     });
 
-    currentUser.value = user;
-    isInitialized.value = true;
+    await refreshSession();
     return user;
   };
 
@@ -87,8 +108,7 @@ export const useAuth = () => {
       method: 'POST',
     });
 
-    currentUser.value = null;
-    isInitialized.value = true;
+    await refreshSession();
   };
 
   const setCurrentUser = (user: AppUser | null) => {

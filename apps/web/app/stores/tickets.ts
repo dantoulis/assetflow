@@ -49,6 +49,14 @@ export const useTicketsStore = defineStore('tickets', () => {
     RESOLVED: resolvedTickets.value.length,
   }));
 
+  const resetStoreState = () => {
+    tickets.value = [];
+    messagesByTicketId.value = {};
+    loadingMessages.value = {};
+    isLoaded.value = false;
+    isLoading.value = false;
+  };
+
   const replaceAll = (nextTickets: AppTicket[]) => {
     tickets.value = nextTickets;
     isLoaded.value = true;
@@ -211,6 +219,7 @@ export const useTicketsStore = defineStore('tickets', () => {
     isLoaded,
     isLoading,
     loadingMessages,
+    resetStoreState,
     fetchAll,
     fetchOne,
     fetchMessages,
