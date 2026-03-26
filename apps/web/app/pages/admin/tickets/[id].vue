@@ -206,10 +206,12 @@ const statusOptions: Array<{ label: string; value: TicketStatus }> = statuses.ma
   label: humanizeEnum(status),
   value: status,
 }));
-const priorityOptions: Array<{ label: string; value: TicketPriority }> = priorities.map((priority) => ({
-  label: humanizeEnum(priority),
-  value: priority,
-}));
+const priorityOptions: Array<{ label: string; value: TicketPriority }> = priorities.map(
+  (priority) => ({
+    label: humanizeEnum(priority),
+    value: priority,
+  }),
+);
 const reviewOpen = ref(false);
 const savingReview = ref(false);
 const sending = ref(false);
@@ -254,7 +256,9 @@ const authors = computed(() => {
   };
 });
 
-const requesterName = computed(() => getDisplayName(usersStore.findUserById(ticket.value.requesterId)));
+const requesterName = computed(() =>
+  getDisplayName(usersStore.findUserById(ticket.value.requesterId)),
+);
 const assignedAdminName = computed(() =>
   ticket.value.assignedAdminId
     ? getDisplayName(usersStore.findUserById(ticket.value.assignedAdminId))

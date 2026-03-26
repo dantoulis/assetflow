@@ -129,7 +129,6 @@ await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll(), assetRequest
 
 const { assets } = storeToRefs(assetsStore);
 const { tickets } = storeToRefs(ticketsStore);
-const { requests: assetRequests } = storeToRefs(assetRequestsStore);
 
 const assignedTickets = computed(() =>
   tickets.value.filter((ticket) => ticket.assignedAdminId === viewer.value?.id),

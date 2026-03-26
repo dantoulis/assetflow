@@ -121,7 +121,6 @@ const usersStore = useUsersStore();
 
 await Promise.all([ticketsStore.fetchAll(), usersStore.fetchAll(), assetsStore.fetchAll()]);
 
-const { assets } = storeToRefs(assetsStore);
 const { highPriorityTickets, pendingAdminTickets, resolvedTickets, tickets } =
   storeToRefs(ticketsStore);
 const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESOLVED'];

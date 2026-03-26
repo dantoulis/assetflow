@@ -188,7 +188,6 @@ const usersStore = useUsersStore();
 await Promise.all([assetRequestsStore.fetchAll(), usersStore.fetchAll(), assetsStore.fetchAll()]);
 
 const { countsByStatus, requests } = storeToRefs(assetRequestsStore);
-const { assets } = storeToRefs(assetsStore);
 const workingId = ref<number | null>(null);
 const rejectDialogOpen = ref(false);
 const rejectTarget = ref<AppAssetRequest | null>(null);
