@@ -189,15 +189,16 @@ await Promise.all([assetRequestsStore.fetchAll(), usersStore.fetchAll(), assetsS
 
 const { countsByStatus, requests } = storeToRefs(assetRequestsStore);
 const { assets } = storeToRefs(assetsStore);
-const { byId: userMap } = storeToRefs(usersStore);
 const workingId = ref<number | null>(null);
 const rejectDialogOpen = ref(false);
 const rejectTarget = ref<AppAssetRequest | null>(null);
 const rejectionReason = ref('');
 const fulfillmentSelection = reactive<Record<number, number>>({});
 
-const userName = (userId: number) =>
-  userMap.value[userId]?.name || userMap.value[userId]?.username || 'Unknown user';
+const userName = (userId: number) => {
+  const user = usersStore.findUserById(userId);
+  return user?.name || user?.username || 'Unknown user';
+};
 const fulfillmentOptions = (requesterId: number) => [
   { label: 'Choose asset to fulfill', value: 0 },
   ...assetsStore.byUserId(requesterId).map((asset) => ({

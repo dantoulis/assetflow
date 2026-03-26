@@ -133,8 +133,8 @@ onBeforeUnmount(() => {
   ticketThreadSyncStore.stopTicketThreadSync(ticketId);
 });
 
-const { byId: ticketMap, messagesByTicketId } = storeToRefs(ticketsStore);
-const ticket = computed<AppTicket>(() => ticketMap.value[ticketId] ?? ticketValue);
+const { messagesByTicketId } = storeToRefs(ticketsStore);
+const ticket = computed<AppTicket>(() => ticketsStore.findTicketById(ticketId) ?? ticketValue);
 const messages = computed<AppTicketMessage[]>(() => messagesByTicketId.value[ticketId] ?? []);
 const draft = ref('');
 const sending = ref(false);

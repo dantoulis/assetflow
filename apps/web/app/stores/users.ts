@@ -2,23 +2,29 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { getUserCountsByTeam } from '@/lib/app-analytics';
 import type { AppUser, UserRoleUpdatePayload, UserUpdatePayload } from '@/lib/app-types';
+import { hasValue, removeItemById } from './store-helpers';
 
 export const useUsersStore = defineStore('users', () => {
-  const api = useAssetFlowApi();
+  const getApi = () => useAssetFlowApi();
 
   const users = ref<AppUser[]>([]);
   const isLoaded = ref(false);
   const isLoading = ref(false);
 
-  const byId = computed(
-    () => Object.fromEntries(users.value.map((user) => [user.id, user])) as Record<number, AppUser>,
-  );
   const count = computed(() => users.value.length);
   const admins = computed(() => users.value.filter((user) => user.role === 'ADMIN'));
   const managedUsers = computed(() => users.value.filter((user) => user.role === 'USER'));
-  const teams = computed(
-    () => [...new Set(managedUsers.value.map((user) => user.team).filter(Boolean))] as string[],
-  );
+  const teams = computed(() => {
+    const uniqueTeams = new Set<string>();
+
+    for (const user of managedUsers.value) {
+      if (hasValue(user.team)) {
+        uniqueTeams.add(user.team);
+      }
+    }
+
+    return [...uniqueTeams];
+  });
   const teamCounts = computed(() => getUserCountsByTeam(managedUsers.value));
 
   const resetStoreState = () => {
@@ -46,14 +52,17 @@ export const useUsersStore = defineStore('users', () => {
   };
 
   const removeFromState = (id: number) => {
-    users.value = users.value.filter((user) => user.id !== id);
+    users.value = removeItemById(users.value, id);
   };
+
+  const findUserById = (id: number) => users.value.find((user) => user.id === id) ?? null;
 
   const fetchAll = async (force = false) => {
     if (isLoaded.value && !force) {
       return users.value;
     }
 
+    const api = getApi();
     isLoading.value = true;
 
     try {
@@ -66,27 +75,31 @@ export const useUsersStore = defineStore('users', () => {
   };
 
   const fetchOne = async (id: number, force = false) => {
-    const cachedUser = byId.value[id];
+    const cachedUser = findUserById(id);
 
     if (cachedUser && !force) {
       return cachedUser;
     }
 
+    const api = getApi();
     const user = await api.fetchUser(id);
     return upsert(user);
   };
 
   const updateUser = async (id: number, payload: UserUpdatePayload) => {
+    const api = getApi();
     const updatedUser = await api.updateUser(id, payload);
     return upsert(updatedUser);
   };
 
   const updateRole = async (id: number, payload: UserRoleUpdatePayload) => {
+    const api = getApi();
     const updatedUser = await api.updateUserRole(id, payload);
     return upsert(updatedUser);
   };
 
   const deleteUser = async (id: number) => {
+    const api = getApi();
     const deletedUser = await api.deleteUser(id);
     removeFromState(id);
     return deletedUser;
@@ -94,7 +107,6 @@ export const useUsersStore = defineStore('users', () => {
 
   return {
     users,
-    byId,
     count,
     admins,
     managedUsers,
@@ -110,5 +122,6 @@ export const useUsersStore = defineStore('users', () => {
     deleteUser,
     replaceAll,
     upsert,
+    findUserById,
   };
 });

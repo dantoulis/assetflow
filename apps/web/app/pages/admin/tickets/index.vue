@@ -124,7 +124,6 @@ await Promise.all([ticketsStore.fetchAll(), usersStore.fetchAll(), assetsStore.f
 const { assets } = storeToRefs(assetsStore);
 const { highPriorityTickets, pendingAdminTickets, resolvedTickets, tickets } =
   storeToRefs(ticketsStore);
-const { byId: userMap } = storeToRefs(usersStore);
 const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESOLVED'];
 const priorities: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
 const statusFilter = ref<'ALL' | TicketStatus>('ALL');
@@ -138,7 +137,7 @@ const priorityFilterOptions = [
   ...priorities.map((priority) => ({ label: humanizeEnum(priority), value: priority })),
 ] as Array<{ label: string; value: 'ALL' | TicketPriority }>;
 
-const userName = (userId: number) => getDisplayName(userMap.value[userId]);
+const userName = (userId: number) => getDisplayName(usersStore.findUserById(userId));
 const assetTitle = (assetId: number | null) => assetsStore.titleFor(assetId);
 
 const filteredTickets = computed(() =>

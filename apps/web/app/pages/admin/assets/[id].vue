@@ -163,8 +163,8 @@ try {
 
 await Promise.all([usersStore.fetchAll(), ticketsStore.fetchAll()]);
 
-const asset = computed(() => assetsStore.byId[assetId] ?? assetValue);
-const owner = computed(() => usersStore.byId[asset.value.userId] ?? null);
+const asset = computed(() => assetsStore.findAssetById(assetId) ?? assetValue);
+const owner = computed(() => usersStore.findUserById(asset.value.userId));
 const ownerName = computed(() => getDisplayName(owner.value));
 const ownerMeta = computed(() =>
   owner.value

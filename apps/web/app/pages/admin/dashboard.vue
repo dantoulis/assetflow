@@ -558,5 +558,5 @@ const distributionCenterValue = computed(() => {
   return `${assetsStore.count}`;
 });
 
-const userName = (userId: number) => getDisplayName(usersStore.byId[userId]);
+const userName = (userId: number) => getDisplayName(usersStore.findUserById(userId));
 </script>

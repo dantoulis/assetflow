@@ -256,7 +256,6 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
 import { Boxes, ClipboardList, Ticket } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import {
@@ -290,8 +289,7 @@ try {
 
 await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll(), assetRequestsStore.fetchAll()]);
 
-const { byId: userMap } = storeToRefs(usersStore);
-const user = computed(() => userMap.value[userId] ?? userValue);
+const user = computed(() => usersStore.findUserById(userId) ?? userValue);
 const ownedAssets = computed(() => assetsStore.byUserId(user.value.id));
 const userTickets = computed(() => ticketsStore.byRequesterId(user.value.id));
 const openTickets = computed(() =>

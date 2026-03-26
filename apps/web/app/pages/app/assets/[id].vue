@@ -143,7 +143,7 @@ try {
 
 await ticketsStore.fetchAll();
 
-const asset = computed(() => assetsStore.byId[assetId] ?? assetValue);
+const asset = computed(() => assetsStore.findAssetById(assetId) ?? assetValue);
 const relatedTickets = computed(() => ticketsStore.byAssetId(asset.value.id));
 
 useHead({

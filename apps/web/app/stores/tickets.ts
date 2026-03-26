@@ -8,9 +8,10 @@ import type {
   TicketMessageCreatePayload,
   TicketUpdatePayload,
 } from '@/lib/app-types';
+import { removeItemById } from './store-helpers';
 
 export const useTicketsStore = defineStore('tickets', () => {
-  const api = useAssetFlowApi();
+  const getApi = () => useAssetFlowApi();
 
   const tickets = ref<AppTicket[]>([]);
   const messagesByTicketId = ref<Record<number, AppTicketMessage[]>>({});
@@ -18,13 +19,6 @@ export const useTicketsStore = defineStore('tickets', () => {
   const isLoading = ref(false);
   const loadingMessages = ref<Record<number, boolean>>({});
 
-  const byId = computed(
-    () =>
-      Object.fromEntries(tickets.value.map((ticket) => [ticket.id, ticket])) as Record<
-        number,
-        AppTicket
-      >,
-  );
   const count = computed(() => tickets.value.length);
   const openTickets = computed(() =>
     tickets.value.filter((ticket) => ticket.status !== 'RESOLVED'),
@@ -82,6 +76,35 @@ export const useTicketsStore = defineStore('tickets', () => {
     };
   };
 
+  const removeMessageThread = (ticketId: number) => {
+    const nextThreads: Record<number, AppTicketMessage[]> = {};
+
+    for (const [currentTicketId, messages] of Object.entries(messagesByTicketId.value)) {
+      const numericTicketId = Number(currentTicketId);
+
+      if (numericTicketId !== ticketId) {
+        nextThreads[numericTicketId] = messages;
+      }
+    }
+
+    messagesByTicketId.value = nextThreads;
+  };
+
+  const removeLoadingState = (ticketId: number) => {
+    const nextLoadingState: Record<number, boolean> = {};
+
+    for (const [currentTicketId, isTicketLoading] of Object.entries(loadingMessages.value)) {
+      const numericTicketId = Number(currentTicketId);
+
+      if (numericTicketId !== ticketId) {
+        nextLoadingState[numericTicketId] = isTicketLoading;
+      }
+    }
+
+    loadingMessages.value = nextLoadingState;
+  };
+
+  const findTicketById = (id: number) => tickets.value.find((ticket) => ticket.id === id) ?? null;
   const messagesFor = (ticketId: number) => messagesByTicketId.value[ticketId] ?? [];
 
   const fetchAll = async (force = false) => {
@@ -89,6 +112,7 @@ export const useTicketsStore = defineStore('tickets', () => {
       return tickets.value;
     }
 
+    const api = getApi();
     isLoading.value = true;
 
     try {
@@ -101,12 +125,13 @@ export const useTicketsStore = defineStore('tickets', () => {
   };
 
   const fetchOne = async (id: number, force = false) => {
-    const cachedTicket = byId.value[id];
+    const cachedTicket = findTicketById(id);
 
     if (cachedTicket && !force) {
       return cachedTicket;
     }
 
+    const api = getApi();
     const ticket = await api.fetchTicket(id);
     return upsert(ticket);
   };
@@ -118,6 +143,7 @@ export const useTicketsStore = defineStore('tickets', () => {
       return cachedMessages;
     }
 
+    const api = getApi();
     loadingMessages.value = {
       ...loadingMessages.value,
       [ticketId]: true,
@@ -145,6 +171,7 @@ export const useTicketsStore = defineStore('tickets', () => {
   };
 
   const createTicketWithMessage = async (payload: TicketCreatePayload, openingMessage: string) => {
+    const api = getApi();
     const createdTicket = await api.createTicket(payload);
 
     await api.createTicketMessage(createdTicket.id, {
@@ -157,11 +184,13 @@ export const useTicketsStore = defineStore('tickets', () => {
   };
 
   const updateTicket = async (id: number, payload: TicketUpdatePayload) => {
+    const api = getApi();
     const updatedTicket = await api.updateTicket(id, payload);
     return upsert(updatedTicket);
   };
 
   const sendMessage = async (ticketId: number, payload: TicketMessageCreatePayload) => {
+    const api = getApi();
     const createdMessage = await api.createTicketMessage(ticketId, payload);
 
     replaceMessages(ticketId, [...messagesFor(ticketId), createdMessage]);
@@ -171,12 +200,11 @@ export const useTicketsStore = defineStore('tickets', () => {
   };
 
   const deleteTicket = async (id: number) => {
+    const api = getApi();
     const deletedTicket = await api.deleteTicket(id);
-    tickets.value = tickets.value.filter((ticket) => ticket.id !== id);
-
-    const nextMessages = { ...messagesByTicketId.value };
-    delete nextMessages[id];
-    messagesByTicketId.value = nextMessages;
+    tickets.value = removeItemById(tickets.value, id);
+    removeMessageThread(id);
+    removeLoadingState(id);
 
     return deletedTicket;
   };
@@ -206,7 +234,6 @@ export const useTicketsStore = defineStore('tickets', () => {
 
   return {
     tickets,
-    byId,
     count,
     messagesByTicketId,
     openTickets,
@@ -231,6 +258,7 @@ export const useTicketsStore = defineStore('tickets', () => {
     replaceAll,
     replaceMessages,
     upsert,
+    findTicketById,
     messagesFor,
     byRequesterId,
     byAssetId,

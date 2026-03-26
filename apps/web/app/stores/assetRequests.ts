@@ -8,21 +8,15 @@ import type {
   AssetRequestReviewPayload,
   AssetRequestUpdatePayload,
 } from '@/lib/app-types';
+import { removeItemById } from './store-helpers';
 
 export const useAssetRequestsStore = defineStore('assetRequests', () => {
-  const api = useAssetFlowApi();
+  const getApi = () => useAssetFlowApi();
 
   const requests = ref<AppAssetRequest[]>([]);
   const isLoaded = ref(false);
   const isLoading = ref(false);
 
-  const byId = computed(
-    () =>
-      Object.fromEntries(requests.value.map((request) => [request.id, request])) as Record<
-        number,
-        AppAssetRequest
-      >,
-  );
   const count = computed(() => requests.value.length);
   const countsByStatus = computed(() => ({
     PENDING: requests.value.filter((request) => request.status === 'PENDING').length,
@@ -64,11 +58,15 @@ export const useAssetRequestsStore = defineStore('assetRequests', () => {
     return request;
   };
 
+  const findRequestById = (id: number) =>
+    requests.value.find((request) => request.id === id) ?? null;
+
   const fetchAll = async (force = false) => {
     if (isLoaded.value && !force) {
       return requests.value;
     }
 
+    const api = getApi();
     isLoading.value = true;
 
     try {
@@ -81,39 +79,45 @@ export const useAssetRequestsStore = defineStore('assetRequests', () => {
   };
 
   const fetchOne = async (id: number, force = false) => {
-    const cachedRequest = byId.value[id];
+    const cachedRequest = findRequestById(id);
 
     if (cachedRequest && !force) {
       return cachedRequest;
     }
 
+    const api = getApi();
     const request = await api.fetchAssetRequest(id);
     return upsert(request);
   };
 
   const createRequest = async (payload: AssetRequestCreatePayload) => {
+    const api = getApi();
     const createdRequest = await api.createAssetRequest(payload);
     return upsert(createdRequest);
   };
 
   const updateRequest = async (id: number, payload: AssetRequestUpdatePayload) => {
+    const api = getApi();
     const updatedRequest = await api.updateAssetRequest(id, payload);
     return upsert(updatedRequest);
   };
 
   const reviewRequest = async (id: number, payload: AssetRequestReviewPayload) => {
+    const api = getApi();
     const updatedRequest = await api.reviewAssetRequest(id, payload);
     return upsert(updatedRequest);
   };
 
   const fulfillRequest = async (id: number, payload: AssetRequestFulfillPayload) => {
+    const api = getApi();
     const updatedRequest = await api.fulfillAssetRequest(id, payload);
     return upsert(updatedRequest);
   };
 
   const deleteRequest = async (id: number) => {
+    const api = getApi();
     const deletedRequest = await api.deleteAssetRequest(id);
-    requests.value = requests.value.filter((request) => request.id !== id);
+    requests.value = removeItemById(requests.value, id);
     return deletedRequest;
   };
 
@@ -138,7 +142,6 @@ export const useAssetRequestsStore = defineStore('assetRequests', () => {
 
   return {
     requests,
-    byId,
     count,
     countsByStatus,
     pendingRequests,
@@ -161,5 +164,6 @@ export const useAssetRequestsStore = defineStore('assetRequests', () => {
     recentByRequester,
     replaceAll,
     upsert,
+    findRequestById,
   };
 });

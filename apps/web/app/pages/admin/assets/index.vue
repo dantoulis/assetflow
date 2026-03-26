@@ -126,7 +126,6 @@ const usersStore = useUsersStore();
 await Promise.all([assetsStore.fetchAll(), usersStore.fetchAll()]);
 
 const { activeAssets, assets, inRepairAssets } = storeToRefs(assetsStore);
-const { byId: userMap } = storeToRefs(usersStore);
 const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERAL'];
 const statuses: AssetStatus[] = ['ACTIVE', 'EXPIRING_SOON', 'EXPIRED', 'IN_REPAIR'];
 const typeFilter = ref<'ALL' | AssetType>('ALL');
@@ -140,7 +139,7 @@ const statusFilterOptions = [
   ...statuses.map((status) => ({ label: humanizeEnum(status), value: status })),
 ] as Array<{ label: string; value: 'ALL' | AssetStatus }>;
 
-const ownerName = (userId: number) => getDisplayName(userMap.value[userId]);
+const ownerName = (userId: number) => getDisplayName(usersStore.findUserById(userId));
 const renewingSoon = computed(() => assetsStore.renewingWithin(21));
 const filteredAssets = computed(() =>
   assets.value.filter((asset) => {

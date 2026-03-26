@@ -196,10 +196,9 @@ onBeforeUnmount(() => {
   ticketThreadSyncStore.stopTicketThreadSync(ticketId);
 });
 
-const { byId: userMap } = storeToRefs(usersStore);
 const { assets } = storeToRefs(assetsStore);
-const { byId: ticketMap, messagesByTicketId } = storeToRefs(ticketsStore);
-const ticket = computed(() => ticketMap.value[ticketId] ?? ticketData);
+const { messagesByTicketId } = storeToRefs(ticketsStore);
+const ticket = computed(() => ticketsStore.findTicketById(ticketId) ?? ticketData);
 const messages = computed<AppTicketMessage[]>(() => messagesByTicketId.value[ticketId] ?? []);
 const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESOLVED'];
 const priorities: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
@@ -226,9 +225,9 @@ useHead({
 });
 
 const authors = computed(() => {
-  const requester = userMap.value[ticket.value.requesterId];
+  const requester = usersStore.findUserById(ticket.value.requesterId);
   const assignedAdmin = ticket.value.assignedAdminId
-    ? userMap.value[ticket.value.assignedAdminId]
+    ? usersStore.findUserById(ticket.value.assignedAdminId)
     : null;
 
   return {
@@ -255,10 +254,10 @@ const authors = computed(() => {
   };
 });
 
-const requesterName = computed(() => getDisplayName(userMap.value[ticket.value.requesterId]));
+const requesterName = computed(() => getDisplayName(usersStore.findUserById(ticket.value.requesterId)));
 const assignedAdminName = computed(() =>
   ticket.value.assignedAdminId
-    ? getDisplayName(userMap.value[ticket.value.assignedAdminId])
+    ? getDisplayName(usersStore.findUserById(ticket.value.assignedAdminId))
     : 'Unassigned',
 );
 const assetTitle = computed(

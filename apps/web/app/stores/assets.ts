@@ -8,19 +8,12 @@ import {
 } from '@/lib/app-analytics';
 
 export const useAssetsStore = defineStore('assets', () => {
-  const api = useAssetFlowApi();
+  const getApi = () => useAssetFlowApi();
 
   const assets = ref<AppAsset[]>([]);
   const isLoaded = ref(false);
   const isLoading = ref(false);
 
-  const byId = computed(
-    () =>
-      Object.fromEntries(assets.value.map((asset) => [asset.id, asset])) as Record<
-        number,
-        AppAsset
-      >,
-  );
   const count = computed(() => assets.value.length);
   const activeAssets = computed(() => assets.value.filter((asset) => asset.status === 'ACTIVE'));
   const inRepairAssets = computed(() =>
@@ -58,6 +51,7 @@ export const useAssetsStore = defineStore('assets', () => {
       return assets.value;
     }
 
+    const api = getApi();
     isLoading.value = true;
 
     try {
@@ -70,25 +64,26 @@ export const useAssetsStore = defineStore('assets', () => {
   };
 
   const fetchOne = async (id: number, force = false) => {
-    const cachedAsset = byId.value[id];
+    const cachedAsset = findAssetById(id);
 
     if (cachedAsset && !force) {
       return cachedAsset;
     }
 
+    const api = getApi();
     const asset = await api.fetchAsset(id);
     return upsert(asset);
   };
 
+  const findAssetById = (id: number) => assets.value.find((asset) => asset.id === id) ?? null;
   const byUserId = (userId: number) => assets.value.filter((asset) => asset.userId === userId);
   const titleFor = (assetId: number | null) =>
-    assets.value.find((asset) => asset.id === assetId)?.title ?? 'General request';
+    findAssetById(assetId ?? -1)?.title ?? 'General request';
   const renewingWithin = (days: number) => getRenewingAssets(assets.value, days);
   const urgentRenewals = (limit: number, days = 7) => renewingWithin(days).slice(0, limit);
 
   return {
     assets,
-    byId,
     count,
     activeAssets,
     inRepairAssets,
@@ -100,6 +95,7 @@ export const useAssetsStore = defineStore('assets', () => {
     fetchAll,
     fetchOne,
     byUserId,
+    findAssetById,
     titleFor,
     renewingWithin,
     urgentRenewals,
