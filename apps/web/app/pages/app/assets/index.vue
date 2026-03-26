@@ -109,13 +109,12 @@ const ticketsStore = useTicketsStore();
 await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll()]);
 
 const { assets } = storeToRefs(assetsStore);
-const { tickets } = storeToRefs(ticketsStore);
 const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERAL'];
 const typeFilter = ref<'ALL' | AssetType>('ALL');
-const typeFilterOptions = [
+const typeFilterOptions: Array<{ label: string; value: 'ALL' | AssetType }> = [
   { label: 'All asset types', value: 'ALL' },
   ...assetTypes.map((type) => ({ label: humanizeEnum(type), value: type })),
-] as Array<{ label: string; value: 'ALL' | AssetType }>;
+];
 
 const renewingSoon = computed(() => assetsStore.renewingWithin(21));
 const assetsWithTickets = computed(

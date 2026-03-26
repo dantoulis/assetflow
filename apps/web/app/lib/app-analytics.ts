@@ -263,39 +263,53 @@ export const getRequestsByUserId = (requests: AppAssetRequest[], userId: number)
       (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
     );
 
-export const getTicketCountsByStatus = (tickets: AppTicket[]) =>
-  tickets.reduce(
-    (counts, ticket) => {
-      counts[ticket.status] = (counts[ticket.status] ?? 0) + 1;
-      return counts;
-    },
-    {} as Record<string, number>,
-  );
+export const getTicketCountsByStatus = (tickets: AppTicket[]) => {
+  const counts: Record<string, number> = {};
 
-export const getAssetCountsByStatus = (assets: AppAsset[]) =>
-  assets.reduce(
-    (counts, asset) => {
-      counts[asset.status] = (counts[asset.status] ?? 0) + 1;
-      return counts;
-    },
-    {} as Record<AssetStatus, number>,
-  );
+  for (const ticket of tickets) {
+    counts[ticket.status] = (counts[ticket.status] ?? 0) + 1;
+  }
 
-export const getUserCountsByTeam = (users: AppUser[]) =>
-  users.reduce(
-    (counts, user) => {
-      const label = user.team?.trim() || 'Unassigned';
-      counts[label] = (counts[label] ?? 0) + 1;
-      return counts;
-    },
-    {} as Record<string, number>,
-  );
+  return counts;
+};
 
-export const getRequestCountsByStatus = (requests: AppAssetRequest[]) =>
-  requests.reduce(
-    (counts, request) => {
-      counts[request.status] = (counts[request.status] ?? 0) + 1;
-      return counts;
-    },
-    {} as Record<AssetRequestStatus, number>,
-  );
+export const getAssetCountsByStatus = (assets: AppAsset[]) => {
+  const counts: Record<AssetStatus, number> = {
+    ACTIVE: 0,
+    EXPIRING_SOON: 0,
+    EXPIRED: 0,
+    IN_REPAIR: 0,
+  };
+
+  for (const asset of assets) {
+    counts[asset.status] += 1;
+  }
+
+  return counts;
+};
+
+export const getUserCountsByTeam = (users: AppUser[]) => {
+  const counts: Record<string, number> = {};
+
+  for (const user of users) {
+    const label = user.team?.trim() || 'Unassigned';
+    counts[label] = (counts[label] ?? 0) + 1;
+  }
+
+  return counts;
+};
+
+export const getRequestCountsByStatus = (requests: AppAssetRequest[]) => {
+  const counts: Record<AssetRequestStatus, number> = {
+    PENDING: 0,
+    APPROVED: 0,
+    REJECTED: 0,
+    FULFILLED: 0,
+  };
+
+  for (const request of requests) {
+    counts[request.status] += 1;
+  }
+
+  return counts;
+};

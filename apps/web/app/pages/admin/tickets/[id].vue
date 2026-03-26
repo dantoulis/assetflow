@@ -202,14 +202,14 @@ const ticket = computed(() => ticketsStore.findTicketById(ticketId) ?? ticketDat
 const messages = computed<AppTicketMessage[]>(() => messagesByTicketId.value[ticketId] ?? []);
 const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESOLVED'];
 const priorities: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
-const statusOptions = statuses.map((status) => ({
+const statusOptions: Array<{ label: string; value: TicketStatus }> = statuses.map((status) => ({
   label: humanizeEnum(status),
   value: status,
-})) as Array<{ label: string; value: TicketStatus }>;
-const priorityOptions = priorities.map((priority) => ({
+}));
+const priorityOptions: Array<{ label: string; value: TicketPriority }> = priorities.map((priority) => ({
   label: humanizeEnum(priority),
   value: priority,
-})) as Array<{ label: string; value: TicketPriority }>;
+}));
 const reviewOpen = ref(false);
 const savingReview = ref(false);
 const sending = ref(false);

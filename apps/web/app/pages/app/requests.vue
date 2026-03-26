@@ -147,6 +147,14 @@ import { toast } from 'vue-sonner';
 import { formatDate, humanizeEnum } from '@/lib/app-formatters';
 import type { AssetRequestCreatePayload, AssetType } from '@/lib/app-types';
 
+type RequestTypeOptionValue = AssetType | 'NONE';
+type AssetRequestDraft = {
+  title: string;
+  assetType: RequestTypeOptionValue;
+  vendor: string;
+  justification: string;
+};
+
 definePageMeta({
   layout: 'user',
 });
@@ -161,15 +169,15 @@ await assetRequestsStore.fetchAll();
 
 const { countsByStatus, requests } = storeToRefs(assetRequestsStore);
 const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERAL'];
-const requestTypeOptions = [
+const requestTypeOptions: Array<{ label: string; value: RequestTypeOptionValue }> = [
   { label: 'No preference', value: 'NONE' },
   ...assetTypes.map((type) => ({ label: humanizeEnum(type), value: type })),
-] as Array<{ label: string; value: AssetType | 'NONE' }>;
+];
 const dialogOpen = ref(false);
 const creating = ref(false);
-const draft = reactive({
+const draft = reactive<AssetRequestDraft>({
   title: '',
-  assetType: 'NONE' as AssetType | 'NONE',
+  assetType: 'NONE',
   vendor: '',
   justification: '',
 });
@@ -190,9 +198,10 @@ const submitRequest = async () => {
   creating.value = true;
 
   try {
+    const requestedAssetType = draft.assetType === 'NONE' ? undefined : draft.assetType;
     const payload: AssetRequestCreatePayload = {
       title: draft.title.trim(),
-      ...(draft.assetType !== 'NONE' ? { assetType: draft.assetType as AssetType } : {}),
+      ...(requestedAssetType ? { assetType: requestedAssetType } : {}),
       ...(draft.vendor.trim() ? { vendor: draft.vendor.trim() } : {}),
       ...(draft.justification.trim() ? { justification: draft.justification.trim() } : {}),
     };

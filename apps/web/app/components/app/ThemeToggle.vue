@@ -54,13 +54,21 @@
 </template>
 
 <script setup lang="ts">
+import type { Component } from 'vue';
 import { Check, LaptopMinimal, MoonStar, SunMedium } from 'lucide-vue-next';
 
 const colorMode = useColorMode();
 
-const modeItems = [
+type ColorModePreference = 'light' | 'dark' | 'system';
+type ModeItem = {
+  value: ColorModePreference;
+  label: string;
+  icon: Component;
+};
+
+const modeItems: ModeItem[] = [
   { value: 'light', label: 'Light', icon: SunMedium },
   { value: 'dark', label: 'Dark', icon: MoonStar },
   { value: 'system', label: 'System', icon: LaptopMinimal },
-] as const;
+];
 </script>

@@ -43,24 +43,32 @@
 </template>
 
 <script setup lang="ts">
-import type { DateRange } from 'reka-ui';
 import { CalendarDays } from 'lucide-vue-next';
+import type { DateRange } from 'reka-ui';
 import { getLocalTimeZone } from '@internationalized/date';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RangeCalendar } from '@/components/ui/range-calendar';
 import type { ChartPeriodPreset } from '@/lib/app-types';
 
+type ChartDateValue = {
+  toDate: (timeZone: string) => Date;
+};
+
+type ChartDateRange =
+  | {
+      start?: ChartDateValue;
+      end?: ChartDateValue;
+    }
+  | undefined;
+
 const props = defineProps<{
   modelValue: ChartPeriodPreset;
-  range: {
-    start?: { toDate: (timeZone: string) => Date } | null;
-    end?: { toDate: (timeZone: string) => Date } | null;
-  };
+  range: ChartDateRange;
 }>();
 
 const emit = defineEmits<{
   'update:modelValue': [value: ChartPeriodPreset];
-  'update:range': [value: DateRange];
+  'update:range': [value: ChartDateRange];
 }>();
 
 const options: Array<{ label: string; value: Exclude<ChartPeriodPreset, 'CUSTOM'> }> = [
@@ -72,17 +80,20 @@ const options: Array<{ label: string; value: Exclude<ChartPeriodPreset, 'CUSTOM'
 const timezone = getLocalTimeZone();
 const customOpen = ref(false);
 
-const rangeModel = computed({
-  get: () => props.range as DateRange,
-  set: (value: DateRange) => {
+const hasCompleteRange = (range: ChartDateRange): range is DateRange =>
+  range !== undefined && range.start !== undefined && range.end !== undefined;
+
+const rangeModel = computed<DateRange | undefined>({
+  get: () => (hasCompleteRange(props.range) ? props.range : undefined),
+  set: (value) => {
     emit('update:range', value);
     emit('update:modelValue', 'CUSTOM');
   },
 });
 
 const customLabel = computed(() => {
-  const start = props.range.start?.toDate(timezone);
-  const end = props.range.end?.toDate(timezone);
+  const start = props.range?.start?.toDate(timezone);
+  const end = props.range?.end?.toDate(timezone);
 
   if (!start || !end) {
     return 'Custom';

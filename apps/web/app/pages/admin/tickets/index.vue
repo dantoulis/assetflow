@@ -128,14 +128,14 @@ const statuses: TicketStatus[] = ['OPEN', 'PENDING_ADMIN', 'PENDING_USER', 'RESO
 const priorities: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
 const statusFilter = ref<'ALL' | TicketStatus>('ALL');
 const priorityFilter = ref<'ALL' | TicketPriority>('ALL');
-const statusFilterOptions = [
+const statusFilterOptions: Array<{ label: string; value: 'ALL' | TicketStatus }> = [
   { label: 'All statuses', value: 'ALL' },
   ...statuses.map((status) => ({ label: humanizeEnum(status), value: status })),
-] as Array<{ label: string; value: 'ALL' | TicketStatus }>;
-const priorityFilterOptions = [
+];
+const priorityFilterOptions: Array<{ label: string; value: 'ALL' | TicketPriority }> = [
   { label: 'All priorities', value: 'ALL' },
   ...priorities.map((priority) => ({ label: humanizeEnum(priority), value: priority })),
-] as Array<{ label: string; value: 'ALL' | TicketPriority }>;
+];
 
 const userName = (userId: number) => getDisplayName(usersStore.findUserById(userId));
 const assetTitle = (assetId: number | null) => assetsStore.titleFor(assetId);

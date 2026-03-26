@@ -11,18 +11,7 @@
           )
         "
         v-bind="{ ...$attrs, ...forwarded }"
-        @pointer-down-outside="
-          (event) => {
-            const originalEvent = event.detail.originalEvent;
-            const target = originalEvent.target as HTMLElement;
-            if (
-              originalEvent.offsetX > target.clientWidth ||
-              originalEvent.offsetY > target.clientHeight
-            ) {
-              event.preventDefault();
-            }
-          }
-        "
+        @pointer-down-outside="handlePointerDownOutside"
       >
         <slot />
 
@@ -61,4 +50,25 @@ const emits = defineEmits<DialogContentEmits>();
 const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+const isHtmlElement = (value: EventTarget | null): value is HTMLElement =>
+  value instanceof HTMLElement;
+
+const handlePointerDownOutside = (event: {
+  detail: {
+    originalEvent: MouseEvent;
+  };
+  preventDefault: () => void;
+}) => {
+  const originalEvent = event.detail.originalEvent;
+  const target = originalEvent.target;
+
+  if (!isHtmlElement(target)) {
+    return;
+  }
+
+  if (originalEvent.offsetX > target.clientWidth || originalEvent.offsetY > target.clientHeight) {
+    event.preventDefault();
+  }
+};
 </script>

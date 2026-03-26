@@ -186,6 +186,14 @@ import { toast } from 'vue-sonner';
 import { formatRelativeDate, humanizeEnum } from '@/lib/app-formatters';
 import type { TicketCategory, TicketPriority, TicketStatus } from '@/lib/app-types';
 
+type TicketDraft = {
+  assetId: number;
+  category: TicketCategory;
+  priority: TicketPriority;
+  subject: string;
+  message: string;
+};
+
 definePageMeta({
   layout: 'user',
 });
@@ -213,27 +221,31 @@ const assetOptions = computed(() => [
   { label: 'General request', value: 0 },
   ...assets.value.map((asset) => ({ label: asset.title, value: asset.id })),
 ]);
-const categoryOptions = categories.map((category) => ({
-  label: humanizeEnum(category),
-  value: category,
-})) as Array<{ label: string; value: TicketCategory }>;
-const priorityOptions = priorities.map((priority) => ({
-  label: humanizeEnum(priority),
-  value: priority,
-})) as Array<{ label: string; value: TicketPriority }>;
-const statusFilterOptions = [
+const categoryOptions: Array<{ label: string; value: TicketCategory }> = categories.map(
+  (category) => ({
+    label: humanizeEnum(category),
+    value: category,
+  }),
+);
+const priorityOptions: Array<{ label: string; value: TicketPriority }> = priorities.map(
+  (priority) => ({
+    label: humanizeEnum(priority),
+    value: priority,
+  }),
+);
+const statusFilterOptions: Array<{ label: string; value: 'ALL' | TicketStatus }> = [
   { label: 'All statuses', value: 'ALL' },
   ...statuses.map((status) => ({ label: humanizeEnum(status), value: status })),
-] as Array<{ label: string; value: 'ALL' | TicketStatus }>;
-const priorityFilterOptions = [
+];
+const priorityFilterOptions: Array<{ label: string; value: 'ALL' | TicketPriority }> = [
   { label: 'All priorities', value: 'ALL' },
   ...priorities.map((priority) => ({ label: humanizeEnum(priority), value: priority })),
-] as Array<{ label: string; value: 'ALL' | TicketPriority }>;
+];
 
-const draft = reactive({
+const draft = reactive<TicketDraft>({
   assetId: 0,
-  category: 'ACCESS' as TicketCategory,
-  priority: 'MEDIUM' as TicketPriority,
+  category: 'ACCESS',
+  priority: 'MEDIUM',
   subject: '',
   message: '',
 });

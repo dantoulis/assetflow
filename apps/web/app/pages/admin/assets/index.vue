@@ -130,14 +130,14 @@ const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERA
 const statuses: AssetStatus[] = ['ACTIVE', 'EXPIRING_SOON', 'EXPIRED', 'IN_REPAIR'];
 const typeFilter = ref<'ALL' | AssetType>('ALL');
 const statusFilter = ref<'ALL' | AssetStatus>('ALL');
-const typeFilterOptions = [
+const typeFilterOptions: Array<{ label: string; value: 'ALL' | AssetType }> = [
   { label: 'All asset types', value: 'ALL' },
   ...assetTypes.map((type) => ({ label: humanizeEnum(type), value: type })),
-] as Array<{ label: string; value: 'ALL' | AssetType }>;
-const statusFilterOptions = [
+];
+const statusFilterOptions: Array<{ label: string; value: 'ALL' | AssetStatus }> = [
   { label: 'All statuses', value: 'ALL' },
   ...statuses.map((status) => ({ label: humanizeEnum(status), value: status })),
-] as Array<{ label: string; value: 'ALL' | AssetStatus }>;
+];
 
 const ownerName = (userId: number) => getDisplayName(usersStore.findUserById(userId));
 const renewingSoon = computed(() => assetsStore.renewingWithin(21));

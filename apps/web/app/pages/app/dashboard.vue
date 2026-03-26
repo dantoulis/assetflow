@@ -236,6 +236,22 @@ import type {
   DistributionSegment,
 } from '@/lib/app-types';
 
+type TrendGranularity = 'hour' | 'day' | 'month';
+type TrendRange = {
+  start: Date;
+  end: Date;
+  granularity: TrendGranularity;
+};
+type ChartDateValue = {
+  toDate: (timeZone: string) => Date;
+};
+type CustomTrendRange = {
+  start?: ChartDateValue;
+  end?: ChartDateValue;
+};
+type TrendMetric = 'ASSETS' | 'TICKETS' | 'REQUESTS';
+type DistributionMode = 'ASSET_TYPES' | 'ASSET_STATUS' | 'TICKET_STATUS' | 'REQUEST_STATUS';
+
 definePageMeta({
   layout: 'user',
 });
@@ -296,10 +312,10 @@ const metrics = computed<DashboardMetric[]>(() => [
   },
 ]);
 
-const trendMetric = ref<'ASSETS' | 'TICKETS' | 'REQUESTS'>('TICKETS');
+const trendMetric = ref<TrendMetric>('TICKETS');
 const trendMetricOptions: Array<{
   label: string;
-  value: 'ASSETS' | 'TICKETS' | 'REQUESTS';
+  value: TrendMetric;
 }> = [
   { label: 'Asset assignments', value: 'ASSETS' },
   { label: 'Tickets opened', value: 'TICKETS' },
@@ -308,7 +324,7 @@ const trendMetricOptions: Array<{
 const trendPeriod = ref<ChartPeriodPreset>('7D');
 const timeZone = getLocalTimeZone();
 const currentDay = today(timeZone);
-const customTrendRange = ref({
+const customTrendRange = ref<CustomTrendRange>({
   start: currentDay.subtract({ days: 13 }),
   end: currentDay,
 });
@@ -327,35 +343,35 @@ const countItemsInRange = <T,>(
     return current >= start && current <= end;
   }).length;
 
-const resolvedTrendRange = computed(() => {
+const resolvedTrendRange = computed<TrendRange>(() => {
   const now = new Date();
 
   if (trendPeriod.value === 'TODAY') {
     const start = new Date(now);
     start.setHours(0, 0, 0, 0);
-    return { start, end: now, granularity: 'hour' as const };
+    return { start, end: now, granularity: 'hour' };
   }
 
   if (trendPeriod.value === '7D') {
     const start = new Date(now);
     start.setDate(start.getDate() - 6);
     start.setHours(0, 0, 0, 0);
-    return { start, end: now, granularity: 'day' as const };
+    return { start, end: now, granularity: 'day' };
   }
 
   if (trendPeriod.value === '30D') {
     const start = new Date(now);
     start.setDate(start.getDate() - 29);
     start.setHours(0, 0, 0, 0);
-    return { start, end: now, granularity: 'day' as const };
+    return { start, end: now, granularity: 'day' };
   }
 
   const fallbackStart = new Date(now);
   fallbackStart.setDate(fallbackStart.getDate() - 13);
   fallbackStart.setHours(0, 0, 0, 0);
 
-  const start = customTrendRange.value.start?.toDate(timeZone) ?? fallbackStart;
-  const end = customTrendRange.value.end?.toDate(timeZone) ?? now;
+  const start = customTrendRange.value?.start?.toDate(timeZone) ?? fallbackStart;
+  const end = customTrendRange.value?.end?.toDate(timeZone) ?? now;
   start.setHours(0, 0, 0, 0);
   end.setHours(23, 59, 59, 999);
 
@@ -367,7 +383,7 @@ const resolvedTrendRange = computed(() => {
   return {
     start,
     end,
-    granularity: daySpan > 62 ? ('month' as const) : ('day' as const),
+    granularity: daySpan > 62 ? 'month' : 'day',
   };
 });
 
@@ -464,12 +480,10 @@ const trendSummary = computed(() => {
   return `${latestValue} ${label} in the latest bucket | ${periodLabel}`;
 });
 
-const distributionMode = ref<'ASSET_TYPES' | 'ASSET_STATUS' | 'TICKET_STATUS' | 'REQUEST_STATUS'>(
-  'ASSET_TYPES',
-);
+const distributionMode = ref<DistributionMode>('ASSET_TYPES');
 const distributionModeOptions: Array<{
   label: string;
-  value: 'ASSET_TYPES' | 'ASSET_STATUS' | 'TICKET_STATUS' | 'REQUEST_STATUS';
+  value: DistributionMode;
 }> = [
   { label: 'Asset types', value: 'ASSET_TYPES' },
   { label: 'Asset status', value: 'ASSET_STATUS' },
