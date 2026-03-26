@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
+import { GoogleStrategyService } from './strategies/google.strategy';
+import { GithubStrategyService } from './strategies/github.strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
@@ -9,6 +12,7 @@ import { RolesGuard } from './roles.guard';
 
 @Module({
   imports: [
+    PassportModule,
     UsersModule,
     JwtModule.register({
       global: true,
@@ -20,6 +24,8 @@ import { RolesGuard } from './roles.guard';
   ],
   controllers: [AuthController],
   providers: [
+    GoogleStrategyService,
+    GithubStrategyService,
     AuthService,
     {
       provide: APP_GUARD,

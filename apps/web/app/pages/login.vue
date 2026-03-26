@@ -55,6 +55,8 @@
         </Button>
       </form>
 
+      <SocialAuthOptions />
+
       <p class="text-center text-sm text-muted-foreground">
         New to AssetFlow?
         <NuxtLink to="/register" class="font-semibold text-primary hover:underline"

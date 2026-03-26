@@ -2,7 +2,7 @@ model User {
   id          Int       @id @default(autoincrement())
   email       String    @unique
   username    String    @unique
-  password    String
+  password    String?
   name        String?
   role        Role      @default(USER)
   phone       String?
@@ -13,12 +13,33 @@ model User {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  authAccounts    AuthAccount[]
   assets                Asset[]
   requestedTickets      Ticket[]        @relation("TicketRequester")
   assignedTickets       Ticket[]        @relation("TicketAssignee")
   ticketMessages        TicketMessage[] @relation("MessageAuthor")
   assetRequests         AssetRequest[]  @relation("AssetRequestRequester")
   reviewedAssetRequests AssetRequest[]  @relation("AssetRequestReviewer")
+}
+
+model AuthAccount {
+  id                Int          @id @default(autoincrement())
+  userId            Int
+  provider          AuthProvider
+  providerAccountId String
+  providerEmail     String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+enum AuthProvider {
+  GOOGLE
+  GITHUB
 }
 
 enum Role {

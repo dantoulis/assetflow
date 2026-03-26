@@ -1,38 +1,47 @@
 import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  ForbiddenException,
-  ConflictException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
+import { Role, User } from '../generated/prisma/client';
+import type { AuthenticatedRequest } from '../auth/types';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
-import { PrismaService } from '../prisma/prisma.service';
-import type { SafeUser } from './types';
-import { Role, User } from '../generated/prisma/client';
-import * as bcrypt from 'bcrypt';
-import type { AuthenticatedRequest } from '../auth/types';
+import type { AuthAccountWithUser, SafeUser, SocialProfile } from './types';
+import { faker } from '@faker-js/faker';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
+
   private readonly saltOrRounds = 10;
 
-  private async isExistingUser(createUserDto: CreateUserDto): Promise<boolean> {
-    const { username, email } = createUserDto;
+  private trimLowercaseEmail(email: string): string {
+    return email.trim().toLowerCase();
+  }
 
+  private trimEmail(username: string): string {
+    return username.trim();
+  }
+
+  private async isExistingUser(createUserDto: CreateUserDto): Promise<boolean> {
     const foundUser = await this.prisma.user.findFirst({
       where: {
         OR: [
           {
             username: {
-              equals: username.trim().toLowerCase(),
+              equals: createUserDto.username.trim().toLocaleLowerCase(),
               mode: 'insensitive',
             },
           },
           {
             email: {
-              equals: email.trim().toLowerCase(),
+              equals: createUserDto.password.trim(),
               mode: 'insensitive',
             },
           },
@@ -51,16 +60,16 @@ export class UsersService {
       throw new ConflictException('User already exists');
     }
 
-    const hasPassword = await bcrypt.hash(createUserDto.password, this.saltOrRounds);
-    const data = {
-      ...createUserDto,
-      username: createUserDto.username,
-      email: createUserDto.email,
-      password: hasPassword,
-      role: Role.USER,
-    };
+    const hashedPassword = await bcrypt.hash(createUserDto.password, this.saltOrRounds);
+
     return await this.prisma.user.create({
-      data,
+      data: {
+        ...createUserDto,
+        username: this.trimEmail(createUserDto.username),
+        email: this.trimLowercaseEmail(createUserDto.email),
+        password: hashedPassword,
+        role: Role.USER,
+      },
       omit: {
         password: true,
       },
@@ -78,6 +87,98 @@ export class UsersService {
       where: { id },
       omit: { password: true },
     });
+  }
+
+  async findOneAuthAccount(profile: SocialProfile): Promise<AuthAccountWithUser | null> {
+    return await this.prisma.authAccount.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider: profile.provider,
+          providerAccountId: profile.providerAccountId,
+        },
+      },
+      include: {
+        user: {
+          omit: {
+            password: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findOneByEmail(email: string): Promise<SafeUser | null> {
+    return await this.prisma.user.findFirst({
+      where: {
+        email: {
+          equals: this.trimLowercaseEmail(email),
+          mode: 'insensitive',
+        },
+      },
+      omit: { password: true },
+    });
+  }
+
+  async linkSocialAccount(userId: number, profile: SocialProfile): Promise<void> {
+    await this.prisma.authAccount.create({
+      data: {
+        userId,
+        provider: profile.provider,
+        providerAccountId: profile.providerAccountId,
+        providerEmail: profile.email ? this.trimLowercaseEmail(profile.email) : undefined,
+      },
+    });
+  }
+
+  private async buildSocialUsername(profile: SocialProfile): Promise<string> {
+    let username =
+      profile.username ??
+      profile.name ??
+      profile.email?.split('@')[0] ??
+      `${profile.provider}-user`;
+
+    const maybeExistingUser = await this.prisma.user.findFirst({
+      where: {
+        username: {
+          equals: username,
+          mode: 'insensitive',
+        },
+      },
+      select: { id: true },
+    });
+
+    if (maybeExistingUser) {
+      username = `${username}-${faker.number.int({ min: 1, max: 1000 })}`;
+    }
+
+    return username;
+  }
+
+  async createSocialUser(profile: SocialProfile): Promise<SafeUser> {
+    if (!profile.email) {
+      throw new BadRequestException('Social profile email is required');
+    }
+
+    const username = await this.buildSocialUsername(profile);
+    const socialUser = await this.prisma.user.create({
+      data: {
+        email: this.trimLowercaseEmail(profile.email),
+        username,
+        password: null,
+        name: profile.name,
+        role: Role.USER,
+        authAccounts: {
+          create: {
+            provider: profile.provider,
+            providerAccountId: profile.providerAccountId,
+            providerEmail: this.trimLowercaseEmail(profile.email),
+          },
+        },
+      },
+      omit: { password: true },
+    });
+
+    return socialUser;
   }
 
   async findOneWithCreds(loginUserDto: { username: string }): Promise<User | null> {

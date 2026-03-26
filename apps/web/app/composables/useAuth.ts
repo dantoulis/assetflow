@@ -63,10 +63,15 @@ export const useAuth = () => {
     isInitializing.value = true;
 
     try {
-      const user = await request<AppUser>('/auth/me');
+      const user = await request<AppUser | null>('/auth/me');
       const currentUserId = currentUser.value?.id;
 
       setCurrentUser(user);
+
+      if (!user) {
+        resetPiniaState();
+        return null;
+      }
 
       if (user.id !== currentUserId) {
         resetPiniaState();

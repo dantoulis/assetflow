@@ -7,13 +7,15 @@ import {
   Post,
   Req,
   Res,
-  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import type { CookieOptions, Response } from 'express';
+import { AuthGuard as PassportAuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ACCESS_TOKEN_COOKIE, ACCESS_TOKEN_TTL_MS } from './auth.constants';
-import type { SafeUser } from '../users/types';
+import { getFrontendUrl } from '../common/utils';
+import type { SafeUser, SocialProfile } from '../users/types';
 import type { AuthenticatedRequest } from './types';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Public } from '../decorators/public.decorator';
@@ -73,12 +75,55 @@ export class AuthController {
     return user;
   }
 
+  @Public()
+  @Get('google')
+  @UseGuards(PassportAuthGuard('google'))
+  googleAuth(): void {}
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(PassportAuthGuard('google'))
+  async googleCallback(
+    @Req() request: AuthenticatedRequest & { user: SocialProfile },
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    const { token, user } = await this.authService.loginWithProvider(request.user);
+
+    this.setCookie(response, token);
+
+    response.redirect(
+      `${getFrontendUrl()}${user.role === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard'}`,
+    );
+  }
+
+  @Public()
+  @Get('github')
+  @UseGuards(PassportAuthGuard('github'))
+  githubAuth(): void {}
+
+  @Public()
+  @Get('github/callback')
+  @UseGuards(PassportAuthGuard('github'))
+  async githubCallback(
+    @Req() request: AuthenticatedRequest & { user: SocialProfile },
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    const { token, user } = await this.authService.loginWithProvider(request.user);
+
+    this.setCookie(response, token);
+
+    response.redirect(
+      `${getFrontendUrl()}${user.role === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard'}`,
+    );
+  }
+
+  @Public()
   @Get('me')
-  async me(@Req() request: AuthenticatedRequest): Promise<SafeUser> {
+  async me(@Req() request: AuthenticatedRequest): Promise<SafeUser | null> {
     const id = request.user?.sub;
 
     if (!id) {
-      throw new UnauthorizedException();
+      return null;
     }
 
     return this.authService.me(id);

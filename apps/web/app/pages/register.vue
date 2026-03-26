@@ -59,6 +59,8 @@
         </Button>
       </form>
 
+      <SocialAuthOptions />
+
       <p class="text-center text-sm text-muted-foreground">
         Already exploring the product?
         <NuxtLink to="/login" class="font-semibold text-primary hover:underline"
