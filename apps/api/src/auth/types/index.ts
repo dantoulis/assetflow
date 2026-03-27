@@ -12,3 +12,10 @@ export interface JwtPayload {
   email: string;
   role: Role;
 }
+
+export interface ResetPasswordTokenPayload {
+  sub: number;
+  email: string;
+  type: 'password-reset';
+  userUpdatedAt: string;
+}

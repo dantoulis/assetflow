@@ -1,41 +1,58 @@
 <template>
-  <Card class="app-surface border-border/70 dark:border-white/10">
-    <CardContent class="space-y-6 p-6 md:p-8">
+  <Card class="app-surface overflow-hidden border-border/70 py-0 dark:border-white/10">
+    <CardContent class="grid gap-8 p-6 md:p-8">
       <div class="space-y-2">
         <div
-          class="inline-flex rounded-full border border-primary/20 bg-primary/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
+          class="inline-flex w-fit rounded-full border border-primary/20 bg-primary/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
         >
           Recovery
         </div>
-        <h1 class="text-3xl font-semibold tracking-[-0.05em]">
-          Password recovery is not enabled yet
-        </h1>
+        <h1 class="text-3xl font-semibold tracking-[-0.05em]">Reset your password</h1>
         <p class="text-sm leading-6 text-muted-foreground">
-          This route is reserved for the email recovery flow. Once reset tokens are introduced, the
-          same screen will handle the recovery request without changing the rest of the auth layout.
+          Enter the email address tied to your account. If it exists, we will send a reset link to
+          your inbox.
         </p>
       </div>
 
-      <div
-        class="rounded-3xl border border-border/70 bg-muted/55 p-4 text-sm leading-6 text-muted-foreground dark:bg-background/55"
-      >
-        Until that backend flow is added, use the seeded workspace account you already have and
-        return here once recovery is supported.
-      </div>
+      <form class="grid gap-5" @submit.prevent="handleSubmit">
+        <div class="grid gap-2">
+          <Label for="email">Email</Label>
+          <Input
+            id="email"
+            v-model="form.email"
+            type="email"
+            class="h-12 rounded-2xl"
+            placeholder="ava@assetflow.dev"
+          />
+        </div>
 
-      <div class="flex flex-wrap gap-3">
-        <Button as-child class="rounded-2xl">
-          <NuxtLink to="/login">Back to login</NuxtLink>
+        <div
+          v-if="submitted"
+          class="rounded-3xl border border-primary/20 bg-primary/8 p-4 text-sm leading-6 text-muted-foreground"
+        >
+          If an account exists for that email, a password reset link has been sent.
+        </div>
+
+        <Button
+          type="submit"
+          class="h-12 w-full rounded-2xl text-sm font-semibold"
+          :disabled="pending"
+        >
+          {{ pending ? 'Sending reset link...' : 'Send reset link' }}
         </Button>
-        <Button variant="outline" as-child class="rounded-2xl">
-          <NuxtLink to="/reset-password">View reset route</NuxtLink>
-        </Button>
-      </div>
+      </form>
+
+      <Button variant="ghost" as-child class="w-fit rounded-2xl px-0">
+        <NuxtLink to="/login">Back to login</NuxtLink>
+      </Button>
     </CardContent>
   </Card>
 </template>
 
 <script setup lang="ts">
+import type { IFetchError } from 'ofetch';
+import { toast } from 'vue-sonner';
+
 definePageMeta({
   layout: 'public',
 });
@@ -43,4 +60,44 @@ definePageMeta({
 useHead({
   title: 'Forgot Password',
 });
+
+const { forgotPassword } = useAuth();
+
+const form = reactive({
+  email: '',
+});
+
+const pending = ref(false);
+const submitted = ref(false);
+
+const handleSubmit = async () => {
+  if (!form.email.trim()) {
+    toast.error('Enter your email address first.');
+    return;
+  }
+
+  pending.value = true;
+
+  try {
+    await forgotPassword({
+      email: form.email.trim().toLowerCase(),
+    });
+
+    submitted.value = true;
+    toast.success('If the account exists, the reset email is on the way.');
+  } catch (error: unknown) {
+    const forgotPasswordError = error as IFetchError;
+    const description =
+      typeof forgotPasswordError.data?.message === 'string'
+        ? forgotPasswordError.data.message
+        : 'Try again in a moment.';
+
+    toast.error('Unable to send reset email', {
+      description,
+    });
+  } finally {
+    pending.value = false;
+    form.email = '';
+  }
+};
 </script>

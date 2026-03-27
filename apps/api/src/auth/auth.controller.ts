@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -19,6 +20,9 @@ import type { SafeUser, SocialProfile } from '../users/types';
 import type { AuthenticatedRequest } from './types';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Public } from '../decorators/public.decorator';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ValidateResetPasswordTokenDto } from './dto/validate-reset-password-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -73,6 +77,28 @@ export class AuthController {
     this.setCookie(response, token);
 
     return user;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<{ success: true }> {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Public()
+  @Get('reset-password/validate')
+  async validateResetPasswordToken(
+    @Query() validateResetPasswordTokenDto: ValidateResetPasswordTokenDto,
+  ): Promise<{ valid: true }> {
+    return this.authService.validateResetPasswordToken(validateResetPasswordTokenDto.token);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<{ success: true }> {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 
   @Public()

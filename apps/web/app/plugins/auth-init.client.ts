@@ -1,7 +1,14 @@
-import { guestOnlyRoutes, isAdminRoute, isProtectedRoute, isUserRoute } from '~/lib/auth-routes';
+import {
+  guestOnlyRoutes,
+  isAdminRoute,
+  isProtectedRoute,
+  isUserRoute,
+  resetPasswordRoute,
+} from '~/lib/auth-routes';
 
 export default defineNuxtPlugin(async () => {
-  const { currentUser, homePath, isAuthenticated, refreshSession } = useAuth();
+  const { currentUser, homePath, isAuthenticated, refreshSession, validatePasswordResetToken } =
+    useAuth();
   const router = useRouter();
 
   const replaceWith = async (path: string, hardRedirect: boolean) => {
@@ -16,7 +23,30 @@ export default defineNuxtPlugin(async () => {
   };
 
   const syncRouteAccess = async (hardRedirect = false) => {
-    const path = router.currentRoute.value.path;
+    const currentRoute = router.currentRoute.value;
+    const path = currentRoute.path;
+
+    if (path === resetPasswordRoute) {
+      if (!hardRedirect) {
+        return;
+      }
+
+      const rawToken = currentRoute.query.token;
+      const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+
+      if (!token) {
+        await replaceWith('/login', hardRedirect);
+        return;
+      }
+
+      try {
+        await validatePasswordResetToken(token);
+      } catch {
+        await replaceWith('/login', hardRedirect);
+      }
+
+      return;
+    }
 
     if (path === '/' || guestOnlyRoutes.has(path) || isProtectedRoute(path)) {
       await refreshSession();
@@ -62,7 +92,11 @@ export default defineNuxtPlugin(async () => {
 
   await syncRouteAccess();
 
-  window.addEventListener('pageshow', () => {
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) {
+      return;
+    }
+
     void syncRouteAccess(true);
   });
 });

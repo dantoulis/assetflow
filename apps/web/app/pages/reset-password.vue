@@ -7,18 +7,19 @@
         >
           Reset
         </div>
-        <h1 class="text-3xl font-semibold tracking-[-0.05em]">Password reset will land here</h1>
+        <h1 class="text-3xl font-semibold tracking-[-0.05em]">Set a new password</h1>
         <p class="text-sm leading-6 text-muted-foreground">
-          The final flow will validate a reset token and save a new password from this screen. The
-          route is already reserved so the auth experience will not need a redesign later.
+          Choose a new password for your account. This link only works while the reset token is
+          valid.
         </p>
       </div>
 
-      <form class="space-y-4">
+      <form class="space-y-4" @submit.prevent="handleSubmit">
         <div class="space-y-2">
           <Label for="next-password">New password</Label>
           <Input
             id="next-password"
+            v-model="form.password"
             type="password"
             class="h-12 rounded-2xl"
             placeholder="Create a strong password"
@@ -28,12 +29,15 @@
           <Label for="confirm-password">Confirm password</Label>
           <Input
             id="confirm-password"
+            v-model="form.confirmPassword"
             type="password"
             class="h-12 rounded-2xl"
             placeholder="Repeat the password"
           />
         </div>
-        <Button type="button" class="h-12 w-full rounded-2xl" disabled>Reset password</Button>
+        <Button type="submit" class="h-12 w-full rounded-2xl" :disabled="pending">
+          {{ pending ? 'Saving new password...' : 'Reset password' }}
+        </Button>
       </form>
 
       <Button variant="ghost" as-child class="rounded-2xl px-0">
@@ -44,11 +48,81 @@
 </template>
 
 <script setup lang="ts">
+import type { IFetchError } from 'ofetch';
+import { toast } from 'vue-sonner';
+
 definePageMeta({
   layout: 'public',
+  middleware: 'reset-password',
 });
 
 useHead({
   title: 'Reset Password',
 });
+
+const route = useRoute();
+const { resetPassword } = useAuth();
+
+const form = reactive({
+  password: '',
+  confirmPassword: '',
+});
+
+const extractToken = (): string => {
+  const rawToken = route.query.token;
+  const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+
+  return typeof token === 'string' ? token : '';
+};
+
+const pending = ref(false);
+
+const handleSubmit = async () => {
+  const token = extractToken();
+
+  if (!token) {
+    await navigateTo('/login');
+    return;
+  }
+
+  if (!form.password.trim()) {
+    toast.error('Enter a new password first.');
+    return;
+  }
+
+  if (form.password.length < 8) {
+    toast.error('Use at least 8 characters for the new password.');
+    return;
+  }
+
+  if (form.password !== form.confirmPassword) {
+    toast.error('The passwords do not match.');
+    return;
+  }
+
+  pending.value = true;
+
+  try {
+    await resetPassword({
+      token,
+      password: form.password,
+    });
+
+    toast.success('Password updated');
+    await navigateTo('/login');
+  } catch (error: unknown) {
+    const resetError = error as IFetchError;
+    const description =
+      typeof resetError.data?.message === 'string'
+        ? resetError.data.message
+        : 'Request a new reset email and try again.';
+
+    toast.error('Unable to reset password', {
+      description,
+    });
+    await navigateTo('/login');
+  } finally {
+    pending.value = false;
+  }
+};
 </script>

@@ -16,6 +16,15 @@ interface RegisterPayload {
   password: string;
 }
 
+interface ForgotPasswordPayload {
+  email: string;
+}
+
+interface ResetPasswordPayload {
+  token: string;
+  password: string;
+}
+
 export const useAuth = () => {
   const config = useRuntimeConfig();
   const apiBase = config.public.apiBase;
@@ -116,12 +125,33 @@ export const useAuth = () => {
     await refreshSession();
   };
 
+  const forgotPassword = async (payload: ForgotPasswordPayload) => {
+    return request<{ success: true }>('/auth/forgot-password', {
+      method: 'POST',
+      body: payload,
+    });
+  };
+
+  const resetPassword = async (payload: ResetPasswordPayload) => {
+    return request<{ success: true }>('/auth/reset-password', {
+      method: 'POST',
+      body: payload,
+    });
+  };
+
+  const validatePasswordResetToken = async (token: string) => {
+    await request<{ valid: true }>('/auth/reset-password/validate', {
+      query: { token },
+    });
+  };
+
   const setCurrentUser = (user: AppUser | null) => {
     currentUser.value = user;
   };
 
   return {
     currentUser,
+    forgotPassword,
     homePath,
     isInitialized,
     isInitializing,
@@ -130,6 +160,8 @@ export const useAuth = () => {
     logout,
     refreshSession,
     register,
+    resetPassword,
     setCurrentUser,
+    validatePasswordResetToken,
   };
 };
