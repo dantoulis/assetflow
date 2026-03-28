@@ -16,13 +16,13 @@ import type {
 } from '@/lib/app-types';
 
 export const useAssetFlowApi = () => {
-  const config = useRuntimeConfig();
+  const apiBase = useApiBase();
 
   const request = async <T>(path: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
     const cookieHeaders = import.meta.server ? useRequestHeaders(['cookie']) : undefined;
 
     return $fetch<T>(path, {
-      baseURL: config.public.apiBase,
+      baseURL: apiBase,
       credentials: 'include',
       headers: {
         ...(cookieHeaders ?? {}),

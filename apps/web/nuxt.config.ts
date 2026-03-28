@@ -25,8 +25,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    apiBaseServer: 'http://localhost:3333',
     public: {
       apiBase: 'http://localhost:3333',
+      googleAuthEnabled: 'false',
+      githubAuthEnabled: 'false',
     },
   },
 

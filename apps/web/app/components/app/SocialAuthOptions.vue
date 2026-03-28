@@ -1,5 +1,5 @@
 <template>
-  <div class="grid gap-4">
+  <div v-if="providers.length" class="grid gap-4">
     <div class="relative">
       <div class="absolute inset-0 flex items-center">
         <span class="w-full border-t border-border/70" />
@@ -36,20 +36,32 @@ type SocialProvider = {
 };
 
 const config = useRuntimeConfig();
-const apiBase = computed(() => config.public.apiBase.replace(/\/$/, ''));
+const apiBase = usePublicApiBase();
+const googleAuthEnabled =
+  config.public.googleAuthEnabled === true || config.public.googleAuthEnabled === 'true';
+const githubAuthEnabled =
+  config.public.githubAuthEnabled === true || config.public.githubAuthEnabled === 'true';
 
 const providers = computed<SocialProvider[]>(() => [
-  {
-    label: 'Google',
-    icon: 'simple-icons:google',
-    iconClass: 'size-6 text-[#4285F4]',
-    href: `${apiBase.value}/auth/google`,
-  },
-  {
-    label: 'GitHub',
-    icon: 'simple-icons:github',
-    iconClass: 'size-6 text-foreground dark:text-white',
-    href: `${apiBase.value}/auth/github`,
-  },
+  ...(googleAuthEnabled
+    ? [
+        {
+          label: 'Google',
+          icon: 'simple-icons:google',
+          iconClass: 'size-6 text-[#4285F4]',
+          href: `${apiBase}/auth/google`,
+        },
+      ]
+    : []),
+  ...(githubAuthEnabled
+    ? [
+        {
+          label: 'GitHub',
+          icon: 'simple-icons:github',
+          iconClass: 'size-6 text-foreground dark:text-white',
+          href: `${apiBase}/auth/github`,
+        },
+      ]
+    : []),
 ]);
 </script>

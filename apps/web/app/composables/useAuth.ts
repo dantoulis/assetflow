@@ -26,8 +26,7 @@ interface ResetPasswordPayload {
 }
 
 export const useAuth = () => {
-  const config = useRuntimeConfig();
-  const apiBase = config.public.apiBase;
+  const apiBase = useApiBase();
   const request = async <T>(path: string, options: Parameters<typeof $fetch<T>>[1] = {}) => {
     const cookieHeaders = import.meta.server ? useRequestHeaders(['cookie']) : undefined;
 
