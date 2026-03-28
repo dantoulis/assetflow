@@ -11,7 +11,7 @@
     "
   >
     <slot />
-    <Icon name="lucide:chevron-right" class="ml-auto size-4"  />
+    <Icon name="lucide:chevron-right" class="ml-auto size-4" />
   </DropdownMenuSubTrigger>
 </template>
 
@@ -29,4 +29,3 @@ const props = defineProps<
 const delegatedProps = reactiveOmit(props, 'class', 'inset');
 const forwardedProps = useForwardProps(delegatedProps);
 </script>
-

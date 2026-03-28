@@ -6,10 +6,14 @@
         size="icon"
         class="relative overflow-hidden rounded-2xl border-white/10 bg-background/60 backdrop-blur"
       >
-        <Icon name="lucide:sun-medium" class="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"  />
-        <Icon name="lucide:moon-star"
+        <Icon
+          name="lucide:sun-medium"
+          class="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+        />
+        <Icon
+          name="lucide:moon-star"
           class="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-         />
+        />
         <span class="sr-only">Toggle theme</span>
       </Button>
     </DropdownMenuTrigger>
@@ -44,17 +48,17 @@
             }}
           </p>
         </div>
-        <Icon name="lucide:check"
+        <Icon
+          name="lucide:check"
           v-if="colorMode.preference === item.value"
           class="ml-2 size-4 shrink-0 text-primary"
-         />
+        />
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 </template>
 
 <script setup lang="ts">
-
 const colorMode = useColorMode();
 
 type ColorModePreference = 'light' | 'dark' | 'system';
@@ -70,4 +74,3 @@ const modeItems: ModeItem[] = [
   { value: 'system', label: 'System', icon: 'lucide:laptop-minimal' },
 ];
 </script>
-

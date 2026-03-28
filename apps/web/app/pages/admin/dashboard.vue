@@ -305,7 +305,12 @@ await Promise.all([
   assetRequestsStore.fetchAll(),
 ]);
 
-const metricIcons = ['lucide:users-round', 'lucide:boxes', 'lucide:message-square-dot', 'lucide:clipboard-list'];
+const metricIcons = [
+  'lucide:users-round',
+  'lucide:boxes',
+  'lucide:message-square-dot',
+  'lucide:clipboard-list',
+];
 const chartColors: string[] = [
   'var(--color-chart-1)',
   'var(--color-chart-2)',
@@ -578,4 +583,3 @@ const distributionCenterValue = computed(() => {
 
 const userName = (userId: number) => getDisplayName(usersStore.findUserById(userId));
 </script>
-

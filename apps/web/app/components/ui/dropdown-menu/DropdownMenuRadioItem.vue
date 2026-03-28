@@ -12,7 +12,7 @@
     <span class="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
       <DropdownMenuItemIndicator>
         <slot name="indicator-icon">
-          <Icon name="lucide:circle" class="size-2 fill-current"  />
+          <Icon name="lucide:circle" class="size-2 fill-current" />
         </slot>
       </DropdownMenuItemIndicator>
     </span>
@@ -35,4 +35,3 @@ const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
-

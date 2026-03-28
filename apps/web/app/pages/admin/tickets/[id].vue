@@ -9,7 +9,7 @@
         <Dialog v-model:open="reviewOpen">
           <DialogTrigger as-child>
             <Button class="rounded-2xl">
-              <Icon name="lucide:shield-check" class="size-4"  />
+              <Icon name="lucide:shield-check" class="size-4" />
               Review ticket
             </Button>
           </DialogTrigger>

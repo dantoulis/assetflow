@@ -10,24 +10,24 @@
     v-bind="props"
   >
     <template #success-icon>
-      <Icon name="lucide:circle-check-big" class="size-4"  />
+      <Icon name="lucide:circle-check-big" class="size-4" />
     </template>
     <template #info-icon>
-      <Icon name="lucide:info" class="size-4"  />
+      <Icon name="lucide:info" class="size-4" />
     </template>
     <template #warning-icon>
-      <Icon name="lucide:triangle-alert" class="size-4"  />
+      <Icon name="lucide:triangle-alert" class="size-4" />
     </template>
     <template #error-icon>
-      <Icon name="lucide:octagon-x" class="size-4"  />
+      <Icon name="lucide:octagon-x" class="size-4" />
     </template>
     <template #loading-icon>
       <div>
-        <Icon name="lucide:loader-circle" class="size-4 animate-spin"  />
+        <Icon name="lucide:loader-circle" class="size-4 animate-spin" />
       </div>
     </template>
     <template #close-icon>
-      <Icon name="lucide:x" class="size-4"  />
+      <Icon name="lucide:x" class="size-4" />
     </template>
   </Sonner>
 </template>
@@ -39,4 +39,3 @@ import { cn } from '@/lib/utils';
 
 const props = defineProps<ToasterProps>();
 </script>
-

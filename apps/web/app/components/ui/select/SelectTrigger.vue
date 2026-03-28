@@ -11,7 +11,7 @@
   >
     <slot />
     <SelectIcon as-child>
-      <Icon name="lucide:chevron-down" class="size-4 shrink-0 text-muted-foreground"  />
+      <Icon name="lucide:chevron-down" class="size-4 shrink-0 text-muted-foreground" />
     </SelectIcon>
   </SelectTrigger>
 </template>
@@ -32,4 +32,3 @@ const props = defineProps<SelectTriggerProps & { class?: HTMLAttributes['class']
 const delegatedProps = reactiveOmit(props, 'class');
 const forwarded = useForwardProps(delegatedProps);
 </script>
-

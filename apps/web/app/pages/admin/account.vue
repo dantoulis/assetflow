@@ -61,7 +61,7 @@
         delta="Current queue"
         hint="Tickets currently assigned to you as admin."
       >
-        <template #icon><Icon name="lucide:messages-square" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:messages-square" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         class="h-full"
@@ -71,7 +71,7 @@
         hint="Asset requests reviewed under your account."
         tone="success"
       >
-        <template #icon><Icon name="lucide:clipboard-list" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:clipboard-list" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         class="h-full"
@@ -81,7 +81,7 @@
         hint="Assets visible on the admin surface."
         tone="warning"
       >
-        <template #icon><Icon name="lucide:boxes" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:boxes" class="size-5" /></template>
       </MetricCard>
     </section>
 
@@ -155,4 +155,3 @@ const handleSubmit = async (payload: UserUpdatePayload) => {
   }
 };
 </script>
-

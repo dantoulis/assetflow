@@ -19,7 +19,7 @@
           class="rounded-full"
           @click="emit('update:modelValue', 'CUSTOM')"
         >
-          <Icon name="lucide:calendar-days" class="size-4"  />
+          <Icon name="lucide:calendar-days" class="size-4" />
           {{ customLabel }}
         </Button>
       </PopoverTrigger>
@@ -106,4 +106,3 @@ const customLabel = computed(() => {
   return `${formatter.format(start)} - ${formatter.format(end)}`;
 });
 </script>
-

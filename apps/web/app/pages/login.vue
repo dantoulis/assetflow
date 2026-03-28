@@ -34,9 +34,10 @@
             >
           </div>
           <div class="relative">
-            <Icon name="lucide:lock-keyhole"
+            <Icon
+              name="lucide:lock-keyhole"
               class="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-             />
+            />
             <Input
               id="password"
               v-model="form.password"
@@ -112,4 +113,3 @@ const handleSubmit = async () => {
   }
 };
 </script>
-

@@ -40,7 +40,7 @@
         <span
           class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-focus:bg-primary/16"
         >
-          <Icon name="lucide:shield-check" class="size-4"  />
+          <Icon name="lucide:shield-check" class="size-4" />
         </span>
         <div class="min-w-0 flex-1">
           <p class="text-sm font-semibold text-foreground">Account settings</p>
@@ -55,7 +55,7 @@
         <span
           class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive transition group-focus:bg-destructive/16"
         >
-          <Icon name="lucide:log-out" class="size-4"  />
+          <Icon name="lucide:log-out" class="size-4" />
         </span>
         <div class="min-w-0 flex-1">
           <p class="text-sm font-semibold">Sign out</p>
@@ -83,4 +83,3 @@ const handleSignOut = async () => {
   await navigateTo('/login');
 };
 </script>
-

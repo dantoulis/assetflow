@@ -13,7 +13,7 @@
         delta="Current footprint"
         hint="Every asset currently linked to your account."
       >
-        <template #icon><Icon name="lucide:boxes" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:boxes" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Renewals due soon"
@@ -22,7 +22,7 @@
         hint="Assets likely to need attention soon."
         tone="warning"
       >
-        <template #icon><Icon name="lucide:calendar-clock" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:calendar-clock" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Linked tickets"
@@ -31,7 +31,7 @@
         hint="Assets that already have support history attached."
         tone="success"
       >
-        <template #icon><Icon name="lucide:life-buoy" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:life-buoy" class="size-5" /></template>
       </MetricCard>
     </section>
 
@@ -127,4 +127,3 @@ const filteredAssets = computed(() =>
 
 const linkedTicketCount = (assetId: number) => ticketsStore.byAssetId(assetId).length;
 </script>
-

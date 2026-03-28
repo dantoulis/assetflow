@@ -9,7 +9,7 @@
         <Dialog v-model:open="dialogOpen">
           <DialogTrigger as-child>
             <Button class="rounded-2xl">
-              <Icon name="lucide:message-circle-plus" class="size-4"  />
+              <Icon name="lucide:message-circle-plus" class="size-4" />
               New ticket
             </Button>
           </DialogTrigger>
@@ -83,7 +83,7 @@
         delta="History"
         hint="Every conversation on your account."
       >
-        <template #icon><Icon name="lucide:messages-square" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:messages-square" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Waiting on admin"
@@ -92,7 +92,7 @@
         hint="Threads where the next step belongs to the admin team."
         tone="warning"
       >
-        <template #icon><Icon name="lucide:shield-check" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:shield-check" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Waiting on you"
@@ -101,7 +101,7 @@
         hint="Threads that need your reply or confirmation."
         tone="neutral"
       >
-        <template #icon><Icon name="lucide:message-square-reply" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:message-square-reply" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Resolved"
@@ -110,7 +110,7 @@
         hint="Finished conversations kept for reference."
         tone="success"
       >
-        <template #icon><Icon name="lucide:circle-check-big" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:circle-check-big" class="size-5" /></template>
       </MetricCard>
     </section>
 
@@ -289,4 +289,3 @@ const submitTicket = async () => {
   }
 };
 </script>
-

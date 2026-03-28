@@ -7,7 +7,7 @@
     :class="cn('h-7 w-7', props.class)"
     @click="toggleSidebar"
   >
-    <Icon name="lucide:panel-left"  />
+    <Icon name="lucide:panel-left" />
     <span class="sr-only">Toggle Sidebar</span>
   </Button>
 </template>
@@ -24,4 +24,3 @@ const props = defineProps<{
 
 const { toggleSidebar } = useSidebar();
 </script>
-

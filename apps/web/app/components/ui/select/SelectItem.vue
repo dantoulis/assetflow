@@ -11,7 +11,7 @@
   >
     <span class="absolute left-3 flex size-4 items-center justify-center">
       <SelectItemIndicator>
-        <Icon name="lucide:check" class="size-4 text-primary"  />
+        <Icon name="lucide:check" class="size-4 text-primary" />
       </SelectItemIndicator>
     </span>
     <SelectItemText>
@@ -36,4 +36,3 @@ const props = defineProps<SelectItemProps & { class?: HTMLAttributes['class'] }>
 const delegatedProps = reactiveOmit(props, 'class');
 const forwarded = useForwardProps(delegatedProps);
 </script>
-

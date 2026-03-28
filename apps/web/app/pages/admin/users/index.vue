@@ -13,7 +13,7 @@
         delta="Active directory"
         hint="Every non-admin account currently visible to the workspace."
       >
-        <template #icon><Icon name="lucide:users-round" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:users-round" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Admins"
@@ -22,7 +22,7 @@
         hint="Accounts with elevated access."
         tone="success"
       >
-        <template #icon><Icon name="lucide:shield-check" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:shield-check" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Avg assigned assets"
@@ -31,7 +31,7 @@
         hint="How much inventory follows a typical user."
         tone="warning"
       >
-        <template #icon><Icon name="lucide:boxes" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:boxes" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Open tickets"
@@ -40,7 +40,7 @@
         hint="Tickets still active across managed users."
         tone="neutral"
       >
-        <template #icon><Icon name="lucide:messages-square" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:messages-square" class="size-5" /></template>
       </MetricCard>
     </section>
 
@@ -138,4 +138,3 @@ const userAssetCount = (userId: number) => assetsStore.byUserId(userId).length;
 const userOpenTicketCount = (userId: number) =>
   ticketsStore.byRequesterId(userId).filter((ticket) => ticket.status !== 'RESOLVED').length;
 </script>
-

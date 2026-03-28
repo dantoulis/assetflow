@@ -50,7 +50,7 @@
           hint="The next operational date on this asset."
           tone="warning"
         >
-          <template #icon><Icon name="lucide:calendar-clock" class="size-5"  /></template>
+          <template #icon><Icon name="lucide:calendar-clock" class="size-5" /></template>
         </MetricCard>
         <MetricCard
           title="Linked tickets"
@@ -59,7 +59,7 @@
           hint="Conversations already attached to this asset."
           tone="neutral"
         >
-          <template #icon><Icon name="lucide:ticket" class="size-5"  /></template>
+          <template #icon><Icon name="lucide:ticket" class="size-5" /></template>
         </MetricCard>
         <MetricCard
           title="Assigned on"
@@ -68,7 +68,7 @@
           hint="When this asset was assigned to the current owner."
           tone="success"
         >
-          <template #icon><Icon name="lucide:repeat-2" class="size-5"  /></template>
+          <template #icon><Icon name="lucide:repeat-2" class="size-5" /></template>
         </MetricCard>
       </div>
     </section>

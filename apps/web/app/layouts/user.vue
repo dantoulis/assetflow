@@ -25,7 +25,7 @@
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton @click="handleSignOut">
-              <Icon name="lucide:log-out"  />
+              <Icon name="lucide:log-out" />
               <span>Sign out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -62,7 +62,6 @@
 </template>
 
 <script setup lang="ts">
-
 const route = useRoute();
 const { logout } = useAuth();
 
@@ -88,4 +87,3 @@ const handleSignOut = async () => {
   await navigateTo('/login');
 };
 </script>
-

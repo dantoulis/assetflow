@@ -13,7 +13,7 @@
         delta="Total queue"
         hint="Every asset request in the system."
       >
-        <template #icon><Icon name="lucide:clipboard-list" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:clipboard-list" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Pending"
@@ -22,7 +22,7 @@
         hint="Requests still waiting for a decision."
         tone="warning"
       >
-        <template #icon><Icon name="lucide:clock-3" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:clock-3" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Approved"
@@ -31,7 +31,7 @@
         hint="Requests approved before provisioning completed."
         tone="success"
       >
-        <template #icon><Icon name="lucide:badge-check" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:badge-check" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Fulfilled"
@@ -40,7 +40,7 @@
         hint="Requests already linked to a real asset."
         tone="neutral"
       >
-        <template #icon><Icon name="lucide:circle-check-big" class="size-5"  /></template>
+        <template #icon><Icon name="lucide:circle-check-big" class="size-5" /></template>
       </MetricCard>
     </section>
 
@@ -149,14 +149,17 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
   </div>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { toast } from 'vue-sonner';
-import type { AppAssetRequest, AssetCreatePayload, AssetRequestReviewPayload } from '@/lib/app-types';
+import type {
+  AppAssetRequest,
+  AssetCreatePayload,
+  AssetRequestReviewPayload,
+} from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -267,4 +270,3 @@ const submitRejection = async () => {
   }
 };
 </script>
-

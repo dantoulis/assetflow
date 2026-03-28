@@ -278,7 +278,12 @@ const viewerId = viewer.value.id;
 
 await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll(), assetRequestsStore.fetchAll()]);
 
-const metricIcons = ['lucide:boxes', 'lucide:timer-reset', 'lucide:message-square-more', 'lucide:clipboard-list'];
+const metricIcons = [
+  'lucide:boxes',
+  'lucide:timer-reset',
+  'lucide:message-square-more',
+  'lucide:clipboard-list',
+];
 const displayName = computed(() => getDisplayName(viewer.value));
 const renewals = computed(() => assetsStore.urgentRenewals(4, 7));
 const recentTickets = computed(() => ticketsStore.recent(4));
@@ -528,4 +533,3 @@ const distributionCenterValue = computed(() =>
       : `${assetsStore.count}`,
 );
 </script>
-
