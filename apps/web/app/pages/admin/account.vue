@@ -61,7 +61,7 @@
         delta="Current queue"
         hint="Tickets currently assigned to you as admin."
       >
-        <template #icon><MessagesSquare class="size-5" /></template>
+        <template #icon><Icon name="lucide:messages-square" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         class="h-full"
@@ -71,7 +71,7 @@
         hint="Asset requests reviewed under your account."
         tone="success"
       >
-        <template #icon><ClipboardList class="size-5" /></template>
+        <template #icon><Icon name="lucide:clipboard-list" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         class="h-full"
@@ -81,7 +81,7 @@
         hint="Assets visible on the admin surface."
         tone="warning"
       >
-        <template #icon><Boxes class="size-5" /></template>
+        <template #icon><Icon name="lucide:boxes" class="size-5"  /></template>
       </MetricCard>
     </section>
 
@@ -96,7 +96,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Boxes, ClipboardList, MessagesSquare } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { formatDate, getDisplayName, getInitials } from '@/lib/app-formatters';
 import type { UserUpdatePayload } from '@/lib/app-types';
@@ -156,3 +155,4 @@ const handleSubmit = async (payload: UserUpdatePayload) => {
   }
 };
 </script>
+

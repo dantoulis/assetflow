@@ -166,7 +166,7 @@
           delta="Current footprint"
           hint="Assets currently attributed to this user."
         >
-          <template #icon><Boxes class="size-5" /></template>
+          <template #icon><Icon name="lucide:boxes" class="size-5"  /></template>
         </MetricCard>
         <MetricCard
           title="Open tickets"
@@ -175,7 +175,7 @@
           hint="Active support conversations for this user."
           tone="warning"
         >
-          <template #icon><Ticket class="size-5" /></template>
+          <template #icon><Icon name="lucide:ticket" class="size-5"  /></template>
         </MetricCard>
         <MetricCard
           title="Asset requests"
@@ -184,7 +184,7 @@
           hint="Requests this user has opened with the admin team."
           tone="success"
         >
-          <template #icon><ClipboardList class="size-5" /></template>
+          <template #icon><Icon name="lucide:clipboard-list" class="size-5"  /></template>
         </MetricCard>
       </div>
     </section>
@@ -256,7 +256,6 @@
 </template>
 
 <script setup lang="ts">
-import { Boxes, ClipboardList, Ticket } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import {
   formatDate,

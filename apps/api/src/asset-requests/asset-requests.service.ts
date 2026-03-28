@@ -178,12 +178,16 @@ export class AssetRequestsService {
       throw new UnauthorizedException();
     }
 
+    if (assetRequest.status === AssetRequestStatus.FULFILLED) {
+      throw new BadRequestException('Asset request is already fulfilled');
+    }
+
     if (assetRequest.status === AssetRequestStatus.REJECTED) {
       throw new BadRequestException('Rejected asset requests cannot be fulfilled');
     }
 
-    if (assetRequest.status === AssetRequestStatus.FULFILLED) {
-      throw new BadRequestException('Asset request is already fulfilled');
+    if (assetRequest.status !== AssetRequestStatus.APPROVED) {
+      throw new BadRequestException('Only approved asset requests can be fulfilled');
     }
 
     const asset = await this.prisma.asset.findUnique({
@@ -192,6 +196,10 @@ export class AssetRequestsService {
 
     if (!asset) {
       throw new NotFoundException('Asset not found');
+    }
+
+    if (assetRequest.assetType && asset.type !== assetRequest.assetType) {
+      throw new BadRequestException('The selected asset type does not match the request');
     }
 
     if (asset.userId !== assetRequest.requesterId) {

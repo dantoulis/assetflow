@@ -54,7 +54,7 @@
           hint="The next operational date attached to this asset."
           tone="warning"
         >
-          <template #icon><TimerReset class="size-5" /></template>
+          <template #icon><Icon name="lucide:timer-reset" class="size-5"  /></template>
         </MetricCard>
         <MetricCard
           title="Support coverage"
@@ -63,7 +63,7 @@
           hint="Support history already attached to this asset."
           tone="neutral"
         >
-          <template #icon><LifeBuoy class="size-5" /></template>
+          <template #icon><Icon name="lucide:life-buoy" class="size-5"  /></template>
         </MetricCard>
         <MetricCard
           title="Status"
@@ -72,7 +72,7 @@
           hint="How this asset currently shows up in the workspace."
           tone="success"
         >
-          <template #icon><ShieldCheck class="size-5" /></template>
+          <template #icon><Icon name="lucide:shield-check" class="size-5"  /></template>
         </MetricCard>
       </div>
     </section>
@@ -116,7 +116,6 @@
 </template>
 
 <script setup lang="ts">
-import { LifeBuoy, ShieldCheck, TimerReset } from 'lucide-vue-next';
 import {
   formatDate,
   formatRelativeDate,

@@ -14,6 +14,13 @@ export default defineNuxtConfig({
   app: {
     head: {
       titleTemplate: '%s - AssetFlow',
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/svg+xml',
+          href: '/favicon.svg',
+        },
+      ],
     },
   },
 

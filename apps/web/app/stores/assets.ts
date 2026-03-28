@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import type { AppAsset } from '@/lib/app-types';
+import type { AppAsset, AssetCreatePayload, AssetUpdatePayload } from '@/lib/app-types';
 import {
   buildStatusDistribution,
   buildTypeDistribution,
   getRenewingAssets,
 } from '@/lib/app-analytics';
+import { removeItemById } from './store-helpers';
 
 export const useAssetsStore = defineStore('assets', () => {
   const getApi = () => useAssetFlowApi();
@@ -46,6 +47,10 @@ export const useAssetsStore = defineStore('assets', () => {
     return asset;
   };
 
+  const removeFromState = (id: number) => {
+    assets.value = removeItemById(assets.value, id);
+  };
+
   const fetchAll = async (force = false) => {
     if (isLoaded.value && !force) {
       return assets.value;
@@ -75,6 +80,25 @@ export const useAssetsStore = defineStore('assets', () => {
     return upsert(asset);
   };
 
+  const createAsset = async (payload: AssetCreatePayload) => {
+    const api = getApi();
+    const createdAsset = await api.createAsset(payload);
+    return upsert(createdAsset);
+  };
+
+  const updateAsset = async (id: number, payload: AssetUpdatePayload) => {
+    const api = getApi();
+    const updatedAsset = await api.updateAsset(id, payload);
+    return upsert(updatedAsset);
+  };
+
+  const deleteAsset = async (id: number) => {
+    const api = getApi();
+    const deletedAsset = await api.deleteAsset(id);
+    removeFromState(id);
+    return deletedAsset;
+  };
+
   const findAssetById = (id: number) => assets.value.find((asset) => asset.id === id) ?? null;
   const byUserId = (userId: number) => assets.value.filter((asset) => asset.userId === userId);
   const titleFor = (assetId: number | null) =>
@@ -94,6 +118,9 @@ export const useAssetsStore = defineStore('assets', () => {
     resetStoreState,
     fetchAll,
     fetchOne,
+    createAsset,
+    updateAsset,
+    deleteAsset,
     byUserId,
     findAssetById,
     titleFor,

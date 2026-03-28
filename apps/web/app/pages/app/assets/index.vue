@@ -13,7 +13,7 @@
         delta="Current footprint"
         hint="Every asset currently linked to your account."
       >
-        <template #icon><Boxes class="size-5" /></template>
+        <template #icon><Icon name="lucide:boxes" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         title="Renewals due soon"
@@ -22,7 +22,7 @@
         hint="Assets likely to need attention soon."
         tone="warning"
       >
-        <template #icon><CalendarClock class="size-5" /></template>
+        <template #icon><Icon name="lucide:calendar-clock" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         title="Linked tickets"
@@ -31,7 +31,7 @@
         hint="Assets that already have support history attached."
         tone="success"
       >
-        <template #icon><LifeBuoy class="size-5" /></template>
+        <template #icon><Icon name="lucide:life-buoy" class="size-5"  /></template>
       </MetricCard>
     </section>
 
@@ -91,7 +91,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Boxes, CalendarClock, LifeBuoy } from 'lucide-vue-next';
 import { formatRelativeDate, getAssetNextDate, humanizeEnum } from '@/lib/app-formatters';
 import type { AssetType } from '@/lib/app-types';
 
@@ -128,3 +127,4 @@ const filteredAssets = computed(() =>
 
 const linkedTicketCount = (assetId: number) => ticketsStore.byAssetId(assetId).length;
 </script>
+

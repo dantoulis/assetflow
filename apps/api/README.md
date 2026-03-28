@@ -60,6 +60,7 @@ cp apps/api/.env.example apps/api/.env
 ```
 
 Key variables:
+
 - `DATABASE_URL`
 - `FRONTEND_URL`
 - `BACKEND_URL`
@@ -70,6 +71,8 @@ Key variables:
 
 For the default local Mailpit workflow, no SMTP username or password is required.
 For this test/demo repository, `apps/api/.env.example` intentionally includes the shared demo JWT secret `top_secret_jwt` so the API can start immediately after cloning.
+
+This package reads `apps/api/.env` during normal local development. The root `.env` is reserved for Docker Compose.
 
 ## Docker Note
 

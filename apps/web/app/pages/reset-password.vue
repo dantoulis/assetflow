@@ -61,7 +61,7 @@ useHead({
 });
 
 const route = useRoute();
-const { resetPassword } = useAuth();
+const { logout, resetPassword } = useAuth();
 
 const form = reactive({
   password: '',
@@ -81,7 +81,7 @@ const handleSubmit = async () => {
   const token = extractToken();
 
   if (!token) {
-    await navigateTo('/login');
+    await navigateTo('/login', { replace: true });
     return;
   }
 
@@ -108,8 +108,9 @@ const handleSubmit = async () => {
       password: form.password,
     });
 
+    await logout();
     toast.success('Password updated');
-    await navigateTo('/login');
+    await navigateTo('/login', { replace: true });
   } catch (error: unknown) {
     const resetError = error as IFetchError;
     const description =
@@ -120,7 +121,7 @@ const handleSubmit = async () => {
     toast.error('Unable to reset password', {
       description,
     });
-    await navigateTo('/login');
+    await navigateTo('/login', { replace: true });
   } finally {
     pending.value = false;
   }

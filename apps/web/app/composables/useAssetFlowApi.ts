@@ -4,6 +4,8 @@ import type {
   AppTicket,
   AppTicketMessage,
   AppUser,
+  AssetCreatePayload,
+  AssetUpdatePayload,
   AssetRequestFulfillPayload,
   AssetRequestUpdatePayload,
   AssetRequestCreatePayload,
@@ -43,6 +45,11 @@ export const useAssetFlowApi = () => {
     deleteUser: (id: number) => request<AppUser>(`/users/${id}`, { method: 'DELETE' }),
     fetchAssets: () => request<AppAsset[]>('/assets'),
     fetchAsset: (id: number) => request<AppAsset>(`/assets/${id}`),
+    createAsset: (body: AssetCreatePayload) =>
+      request<AppAsset>('/assets', { method: 'POST', body }),
+    updateAsset: (id: number, body: AssetUpdatePayload) =>
+      request<AppAsset>(`/assets/${id}`, { method: 'PATCH', body }),
+    deleteAsset: (id: number) => request<AppAsset>(`/assets/${id}`, { method: 'DELETE' }),
     fetchTickets: () => request<AppTicket[]>('/tickets'),
     fetchTicket: (id: number) => request<AppTicket>(`/tickets/${id}`),
     createTicket: (body: TicketCreatePayload) =>

@@ -4,7 +4,8 @@
       eyebrow="Support"
       title="Ticket queue with live ownership context."
       description="Review every thread in one place, filter the queue, and drill into the conversations that need action."
-    />
+    >
+    </PageIntro>
 
     <section class="grid gap-4 xl:grid-cols-4">
       <MetricCard
@@ -13,7 +14,7 @@
         delta="Total queue"
         hint="Every support conversation in the system."
       >
-        <template #icon><MessagesSquare class="size-5" /></template>
+        <template #icon><Icon name="lucide:messages-square" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Pending admin"
@@ -22,7 +23,7 @@
         hint="Threads where the next step belongs to the admin team."
         tone="warning"
       >
-        <template #icon><AlertTriangle class="size-5" /></template>
+        <template #icon><Icon name="lucide:triangle-alert" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Resolved"
@@ -31,7 +32,7 @@
         hint="Tickets that have already been wrapped up."
         tone="success"
       >
-        <template #icon><CheckCheck class="size-5" /></template>
+        <template #icon><Icon name="lucide:check-check" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="High priority"
@@ -40,7 +41,7 @@
         hint="Tickets that should be handled first."
         tone="neutral"
       >
-        <template #icon><TimerReset class="size-5" /></template>
+        <template #icon><Icon name="lucide:timer-reset" class="size-5" /></template>
       </MetricCard>
     </section>
 
@@ -103,7 +104,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { AlertTriangle, CheckCheck, MessagesSquare, TimerReset } from 'lucide-vue-next';
 import { formatRelativeDate, getDisplayName, humanizeEnum } from '@/lib/app-formatters';
 import type { TicketPriority, TicketStatus } from '@/lib/app-types';
 

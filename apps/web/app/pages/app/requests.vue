@@ -9,7 +9,7 @@
         <Dialog v-model:open="dialogOpen">
           <DialogTrigger as-child>
             <Button class="rounded-2xl">
-              <ClipboardPlus class="size-4" />
+              <Icon name="lucide:clipboard-plus" class="size-4"  />
               New request
             </Button>
           </DialogTrigger>
@@ -67,7 +67,7 @@
         delta="History"
         hint="Every asset request on your account."
       >
-        <template #icon><ClipboardList class="size-5" /></template>
+        <template #icon><Icon name="lucide:clipboard-list" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         title="Pending"
@@ -76,7 +76,7 @@
         hint="Requests the admin team has not decided yet."
         tone="warning"
       >
-        <template #icon><Clock3 class="size-5" /></template>
+        <template #icon><Icon name="lucide:clock-3" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         title="Fulfilled"
@@ -85,7 +85,7 @@
         hint="Requests already turned into assigned assets."
         tone="success"
       >
-        <template #icon><CircleCheckBig class="size-5" /></template>
+        <template #icon><Icon name="lucide:circle-check-big" class="size-5"  /></template>
       </MetricCard>
     </section>
 
@@ -142,7 +142,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { CircleCheckBig, ClipboardList, ClipboardPlus, Clock3 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { formatDate, humanizeEnum } from '@/lib/app-formatters';
 import type { AssetRequestCreatePayload, AssetType } from '@/lib/app-types';
@@ -217,3 +216,4 @@ const submitRequest = async () => {
   }
 };
 </script>
+

@@ -9,7 +9,7 @@
         <Dialog v-model:open="reviewOpen">
           <DialogTrigger as-child>
             <Button class="rounded-2xl">
-              <ShieldCheck class="size-4" />
+              <Icon name="lucide:shield-check" class="size-4"  />
               Review ticket
             </Button>
           </DialogTrigger>
@@ -148,7 +148,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ShieldCheck } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import {
   formatRelativeDate,

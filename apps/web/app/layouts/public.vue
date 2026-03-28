@@ -1,6 +1,6 @@
 <template>
   <div class="relative min-h-svh overflow-hidden px-4 py-5 md:px-6 lg:px-8">
-    <div class="mx-auto flex min-h-[calc(100svh-2rem)] max-w-7xl items-center">
+    <div class="mx-auto flex min-h-[calc(100svh-2.5rem)] max-w-7xl items-center">
       <div
         class="grid w-full items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(30rem,34rem)] xl:gap-8"
       >

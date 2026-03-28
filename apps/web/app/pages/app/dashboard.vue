@@ -26,7 +26,7 @@
         :tone="index === 1 ? 'warning' : index === 3 ? 'success' : 'primary'"
       >
         <template #icon>
-          <component :is="metricIcons[index]" class="size-5" />
+          <Icon :name="metricIcons[index]!" class="size-5" />
         </template>
       </MetricCard>
     </section>
@@ -215,7 +215,6 @@
 </template>
 
 <script setup lang="ts">
-import { Boxes, ClipboardList, MessageSquareMore, TimerReset } from 'lucide-vue-next';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import {
   buildDailySeriesForRange,
@@ -279,7 +278,7 @@ const viewerId = viewer.value.id;
 
 await Promise.all([assetsStore.fetchAll(), ticketsStore.fetchAll(), assetRequestsStore.fetchAll()]);
 
-const metricIcons = [Boxes, TimerReset, MessageSquareMore, ClipboardList];
+const metricIcons = ['lucide:boxes', 'lucide:timer-reset', 'lucide:message-square-more', 'lucide:clipboard-list'];
 const displayName = computed(() => getDisplayName(viewer.value));
 const renewals = computed(() => assetsStore.urgentRenewals(4, 7));
 const recentTickets = computed(() => ticketsStore.recent(4));
@@ -529,3 +528,4 @@ const distributionCenterValue = computed(() =>
       : `${assetsStore.count}`,
 );
 </script>
+

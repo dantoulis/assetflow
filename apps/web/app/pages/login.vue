@@ -34,9 +34,9 @@
             >
           </div>
           <div class="relative">
-            <LockKeyhole
+            <Icon name="lucide:lock-keyhole"
               class="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            />
+             />
             <Input
               id="password"
               v-model="form.password"
@@ -68,7 +68,6 @@
 </template>
 
 <script setup lang="ts">
-import { LockKeyhole } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 definePageMeta({
@@ -113,3 +112,4 @@ const handleSubmit = async () => {
   }
 };
 </script>
+

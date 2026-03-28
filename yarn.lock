@@ -11167,15 +11167,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-vue-next@npm:^0.577.0":
-  version: 0.577.0
-  resolution: "lucide-vue-next@npm:0.577.0"
-  peerDependencies:
-    vue: ">=3.0.1"
-  checksum: 10c0/0a1b5e7e390546ebc1f3f5ab15bc6a73eade96305727f5583f878faa52755680a0d63035828ee55b28839cebe7cf71600ee41a9da74dec9e469e5b3b50363984
-  languageName: node
-  linkType: hard
-
 "magic-regexp@npm:^0.10.0":
   version: 0.10.0
   resolution: "magic-regexp@npm:0.10.0"
@@ -16236,7 +16227,6 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.2.2"
     eslint-plugin-vue: "npm:^10.0.0"
     globals: "npm:^16.0.0"
-    lucide-vue-next: "npm:^0.577.0"
     nuxt: "npm:^4.4.2"
     pinia: "npm:^3.0.4"
     prettier: "npm:^3.4.2"

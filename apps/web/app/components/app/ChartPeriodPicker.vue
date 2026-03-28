@@ -19,7 +19,7 @@
           class="rounded-full"
           @click="emit('update:modelValue', 'CUSTOM')"
         >
-          <CalendarDays class="size-4" />
+          <Icon name="lucide:calendar-days" class="size-4"  />
           {{ customLabel }}
         </Button>
       </PopoverTrigger>
@@ -43,7 +43,6 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarDays } from 'lucide-vue-next';
 import type { DateRange } from 'reka-ui';
 import { getLocalTimeZone } from '@internationalized/date';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -107,3 +106,4 @@ const customLabel = computed(() => {
   return `${formatter.format(start)} - ${formatter.format(end)}`;
 });
 </script>
+

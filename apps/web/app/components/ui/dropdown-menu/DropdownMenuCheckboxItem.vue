@@ -12,7 +12,7 @@
     <span class="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
       <DropdownMenuItemIndicator>
         <slot name="indicator-icon">
-          <Check class="size-4" />
+          <Icon name="lucide:check" class="size-4"  />
         </slot>
       </DropdownMenuItemIndicator>
     </span>
@@ -21,10 +21,9 @@
 </template>
 
 <script setup lang="ts">
+import { reactiveOmit } from '@vueuse/core';
 import type { DropdownMenuCheckboxItemEmits, DropdownMenuCheckboxItemProps } from 'reka-ui';
 import type { HTMLAttributes } from 'vue';
-import { reactiveOmit } from '@vueuse/core';
-import { Check } from 'lucide-vue-next';
 import { DropdownMenuCheckboxItem, DropdownMenuItemIndicator, useForwardPropsEmits } from 'reka-ui';
 import { cn } from '@/lib/utils';
 
@@ -35,3 +34,4 @@ const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
+

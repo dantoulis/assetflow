@@ -6,10 +6,10 @@
         size="icon"
         class="relative overflow-hidden rounded-2xl border-white/10 bg-background/60 backdrop-blur"
       >
-        <SunMedium class="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <MoonStar
+        <Icon name="lucide:sun-medium" class="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"  />
+        <Icon name="lucide:moon-star"
           class="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-        />
+         />
         <span class="sr-only">Toggle theme</span>
       </Button>
     </DropdownMenuTrigger>
@@ -30,7 +30,7 @@
         <span
           class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary/90 transition group-focus:bg-primary/16"
         >
-          <component :is="item.icon" class="size-4" />
+          <Icon :name="item.icon" class="size-4" />
         </span>
         <div class="min-w-0 flex-1">
           <p class="text-sm font-semibold text-foreground">{{ item.label }}</p>
@@ -44,18 +44,16 @@
             }}
           </p>
         </div>
-        <Check
+        <Icon name="lucide:check"
           v-if="colorMode.preference === item.value"
           class="ml-2 size-4 shrink-0 text-primary"
-        />
+         />
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 </template>
 
 <script setup lang="ts">
-import type { Component } from 'vue';
-import { Check, LaptopMinimal, MoonStar, SunMedium } from 'lucide-vue-next';
 
 const colorMode = useColorMode();
 
@@ -63,12 +61,13 @@ type ColorModePreference = 'light' | 'dark' | 'system';
 type ModeItem = {
   value: ColorModePreference;
   label: string;
-  icon: Component;
+  icon: string;
 };
 
 const modeItems: ModeItem[] = [
-  { value: 'light', label: 'Light', icon: SunMedium },
-  { value: 'dark', label: 'Dark', icon: MoonStar },
-  { value: 'system', label: 'System', icon: LaptopMinimal },
+  { value: 'light', label: 'Light', icon: 'lucide:sun-medium' },
+  { value: 'dark', label: 'Dark', icon: 'lucide:moon-star' },
+  { value: 'system', label: 'System', icon: 'lucide:laptop-minimal' },
 ];
 </script>
+

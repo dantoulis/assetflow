@@ -12,7 +12,7 @@
               <SidebarMenuItem v-for="item in section.items" :key="item.to">
                 <SidebarMenuButton as-child :is-active="isActive(item.to)" :tooltip="item.label">
                   <NuxtLink :to="item.to">
-                    <component :is="item.icon" />
+                    <Icon :name="item.icon" />
                     <span>{{ item.label }}</span>
                   </NuxtLink>
                 </SidebarMenuButton>
@@ -25,7 +25,7 @@
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton @click="handleSignOut">
-              <LogOut />
+              <Icon name="lucide:log-out"  />
               <span>Sign out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -62,14 +62,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ChartColumnBig,
-  ClipboardList,
-  FolderKanban,
-  LogOut,
-  MessagesSquare,
-  UserRound,
-} from 'lucide-vue-next';
 
 const route = useRoute();
 const { logout } = useAuth();
@@ -78,11 +70,11 @@ const sections = [
   {
     label: 'Workspace',
     items: [
-      { label: 'Dashboard', to: '/app/dashboard', icon: ChartColumnBig },
-      { label: 'My Assets', to: '/app/assets', icon: FolderKanban },
-      { label: 'Tickets', to: '/app/tickets', icon: MessagesSquare },
-      { label: 'Requests', to: '/app/requests', icon: ClipboardList },
-      { label: 'Account', to: '/app/account', icon: UserRound },
+      { label: 'Dashboard', to: '/app/dashboard', icon: 'lucide:chart-column-big' },
+      { label: 'My Assets', to: '/app/assets', icon: 'lucide:folder-kanban' },
+      { label: 'Tickets', to: '/app/tickets', icon: 'lucide:messages-square' },
+      { label: 'Requests', to: '/app/requests', icon: 'lucide:clipboard-list' },
+      { label: 'Account', to: '/app/account', icon: 'lucide:user-round' },
     ],
   },
 ];
@@ -96,3 +88,4 @@ const handleSignOut = async () => {
   await navigateTo('/login');
 };
 </script>
+

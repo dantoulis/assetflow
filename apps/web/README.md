@@ -52,10 +52,13 @@ cp apps/web/.env.example apps/web/.env
 ```
 
 Key variables:
+
 - `NUXT_PUBLIC_API_BASE`
 - `NUXT_API_BASE_SERVER`
 - `NUXT_PUBLIC_GOOGLE_AUTH_ENABLED`
 - `NUXT_PUBLIC_GITHUB_AUTH_ENABLED`
+
+This package reads `apps/web/.env` during normal local development. The root `.env` is reserved for Docker Compose.
 
 ## Docker Note
 

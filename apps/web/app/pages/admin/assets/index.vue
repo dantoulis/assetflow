@@ -4,7 +4,40 @@
       eyebrow="Inventory"
       title="Assets, subscriptions, and renewal pressure."
       description="Scan the inventory, filter by type or status, and drill into anything that needs attention."
-    />
+    >
+      <template #actions>
+        <Dialog v-model:open="createDialogOpen">
+          <DialogTrigger as-child>
+            <Button class="rounded-2xl">
+              <Icon name="lucide:boxes" class="size-4" />
+              Assign asset
+            </Button>
+          </DialogTrigger>
+          <DialogScrollContent
+            :show-close-button="false"
+            class="rounded-3xl border-border/80 bg-white text-foreground shadow-[0_30px_120px_-50px_color-mix(in_oklab,var(--color-primary)_30%,transparent)] dark:bg-card sm:max-w-3xl"
+          >
+            <DialogHeader>
+              <DialogTitle>Create and assign asset</DialogTitle>
+              <DialogDescription>
+                Provision a new asset record and assign it directly to an available user.
+              </DialogDescription>
+            </DialogHeader>
+            <AssetEditor
+              embedded
+              submit-label="Create asset"
+              :owner-options="ownerOptions"
+              :saving="creating"
+              :show-owner-select="true"
+              secondary-action-label="Close"
+              secondary-action-mode="close"
+              @cancel="createDialogOpen = false"
+              @submit="createAsset"
+            />
+          </DialogScrollContent>
+        </Dialog>
+      </template>
+    </PageIntro>
 
     <section class="grid gap-4 xl:grid-cols-4">
       <MetricCard
@@ -13,7 +46,7 @@
         delta="All categories"
         hint="Every hardware and software asset currently tracked."
       >
-        <template #icon><Boxes class="size-5" /></template>
+        <template #icon><Icon name="lucide:boxes" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Active"
@@ -22,7 +55,7 @@
         hint="Assets currently in a healthy operational state."
         tone="success"
       >
-        <template #icon><CircleCheckBig class="size-5" /></template>
+        <template #icon><Icon name="lucide:circle-check-big" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Renewing soon"
@@ -31,7 +64,7 @@
         hint="Assets likely to need follow-up soon."
         tone="warning"
       >
-        <template #icon><CalendarClock class="size-5" /></template>
+        <template #icon><Icon name="lucide:calendar-clock" class="size-5" /></template>
       </MetricCard>
       <MetricCard
         title="Repair queue"
@@ -40,7 +73,7 @@
         hint="Assets currently blocked or being serviced."
         tone="neutral"
       >
-        <template #icon><Wrench class="size-5" /></template>
+        <template #icon><Icon name="lucide:wrench" class="size-5" /></template>
       </MetricCard>
     </section>
 
@@ -50,7 +83,7 @@
           <CardTitle>Asset directory</CardTitle>
           <CardDescription>Filter by type and status to focus the inventory view.</CardDescription>
         </div>
-        <div class="grid gap-3 md:grid-cols-2">
+        <div class="grid gap-3 md:grid-cols-[auto_repeat(2,minmax(0,1fr))]">
           <AppSelectField
             v-model="typeFilter"
             :options="typeFilterOptions"
@@ -98,19 +131,38 @@
         </div>
       </CardContent>
     </Card>
+
+    <Dialog v-model:open="createDialogOpen">
+      <DialogScrollContent class="rounded-3xl sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Create and assign asset</DialogTitle>
+          <DialogDescription>
+            Provision a new asset record and assign it directly to a team member.
+          </DialogDescription>
+        </DialogHeader>
+        <AssetEditor
+          embedded
+          submit-label="Create asset"
+          :owner-options="ownerOptions"
+          :saving="creating"
+          :show-owner-select="true"
+          @submit="createAsset"
+        />
+      </DialogScrollContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { Boxes, CalendarClock, CircleCheckBig, Wrench } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 import {
   formatRelativeDate,
   getAssetNextDate,
   getDisplayName,
   humanizeEnum,
 } from '@/lib/app-formatters';
-import type { AssetStatus, AssetType } from '@/lib/app-types';
+import type { AssetCreatePayload, AssetStatus, AssetType } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -130,6 +182,8 @@ const assetTypes: AssetType[] = ['LAPTOP', 'SUBSCRIPTION', 'LICENSE', 'PERIPHERA
 const statuses: AssetStatus[] = ['ACTIVE', 'EXPIRING_SOON', 'EXPIRED', 'IN_REPAIR'];
 const typeFilter = ref<'ALL' | AssetType>('ALL');
 const statusFilter = ref<'ALL' | AssetStatus>('ALL');
+const createDialogOpen = ref(false);
+const creating = ref(false);
 const typeFilterOptions: Array<{ label: string; value: 'ALL' | AssetType }> = [
   { label: 'All asset types', value: 'ALL' },
   ...assetTypes.map((type) => ({ label: humanizeEnum(type), value: type })),
@@ -140,6 +194,14 @@ const statusFilterOptions: Array<{ label: string; value: 'ALL' | AssetStatus }> 
 ];
 
 const ownerName = (userId: number) => getDisplayName(usersStore.findUserById(userId));
+const ownerOptions = computed(() =>
+  [...usersStore.managedUsers]
+    .sort((left, right) => getDisplayName(left).localeCompare(getDisplayName(right)))
+    .map((user) => ({
+      label: `${getDisplayName(user)} | ${user.team || 'No team'} | ${user.username}`,
+      value: user.id,
+    })),
+);
 const renewingSoon = computed(() => assetsStore.renewingWithin(21));
 const filteredAssets = computed(() =>
   assets.value.filter((asset) => {
@@ -148,4 +210,19 @@ const filteredAssets = computed(() =>
     return true;
   }),
 );
+
+const createAsset = async (payload: AssetCreatePayload) => {
+  creating.value = true;
+
+  try {
+    const createdAsset = await assetsStore.createAsset(payload);
+    createDialogOpen.value = false;
+    toast.success('Asset assigned');
+    await navigateTo(`/admin/assets/${createdAsset.id}`);
+  } catch {
+    toast.error('Unable to create asset');
+  } finally {
+    creating.value = false;
+  }
+};
 </script>

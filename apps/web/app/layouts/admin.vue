@@ -12,7 +12,7 @@
               <SidebarMenuItem v-for="item in section.items" :key="item.to">
                 <SidebarMenuButton as-child :is-active="isActive(item.to)" :tooltip="item.label">
                   <NuxtLink :to="item.to">
-                    <component :is="item.icon" />
+                    <Icon :name="item.icon" />
                     <span>{{ item.label }}</span>
                   </NuxtLink>
                 </SidebarMenuButton>
@@ -25,7 +25,7 @@
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton @click="handleSignOut">
-              <LogOut />
+              <Icon name="lucide:log-out"  />
               <span>Sign out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -68,15 +68,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Boxes,
-  ChartColumnBig,
-  ClipboardList,
-  LogOut,
-  MessageSquareMore,
-  UserRound,
-  UsersRound,
-} from 'lucide-vue-next';
 
 const route = useRoute();
 const { logout } = useAuth();
@@ -90,12 +81,12 @@ const sections = [
   {
     label: 'Control center',
     items: [
-      { label: 'Dashboard', to: '/admin/dashboard', icon: ChartColumnBig },
-      { label: 'Users', to: '/admin/users', icon: UsersRound },
-      { label: 'Assets', to: '/admin/assets', icon: Boxes },
-      { label: 'Tickets', to: '/admin/tickets', icon: MessageSquareMore },
-      { label: 'Requests', to: '/admin/requests', icon: ClipboardList },
-      { label: 'Account', to: '/admin/account', icon: UserRound },
+      { label: 'Dashboard', to: '/admin/dashboard', icon: 'lucide:chart-column-big' },
+      { label: 'Users', to: '/admin/users', icon: 'lucide:users-round' },
+      { label: 'Assets', to: '/admin/assets', icon: 'lucide:boxes' },
+      { label: 'Tickets', to: '/admin/tickets', icon: 'lucide:message-square-more' },
+      { label: 'Requests', to: '/admin/requests', icon: 'lucide:clipboard-list' },
+      { label: 'Account', to: '/admin/account', icon: 'lucide:user-round' },
     ],
   },
 ];
@@ -109,3 +100,4 @@ const handleSignOut = async () => {
   await navigateTo('/login');
 };
 </script>
+

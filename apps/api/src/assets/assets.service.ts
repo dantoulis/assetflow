@@ -1,18 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAssetDto } from './dto/create-asset.dto';
 import { UpdateAssetDto } from './dto/update-asset.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Asset } from '../generated/prisma/client';
 import { Role } from '../generated/prisma/client';
 import { AuthenticatedRequest } from '../auth/types';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class AssetService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createAssetDto: CreateAssetDto): Promise<Asset> {
-    return this.prisma.asset.create({ data: createAssetDto });
+    await this.ensureUserExists(createAssetDto.userId);
+
+    return this.prisma.asset.create({
+      data: {
+        ...createAssetDto,
+        assignedAt: createAssetDto.assignedAt ?? new Date(),
+      },
+    });
   }
 
   async findAll(request: AuthenticatedRequest): Promise<Asset[]> {
@@ -56,9 +67,26 @@ export class AssetService {
   }
 
   async update(id: number, updateAssetDto: UpdateAssetDto): Promise<Asset> {
+    const existingAsset = await this.prisma.asset.findUnique({
+      where: { id },
+    });
+
+    if (!existingAsset) {
+      throw new NotFoundException('Asset not found');
+    }
+
+    if (updateAssetDto.userId !== undefined && updateAssetDto.userId !== existingAsset.userId) {
+      throw new BadRequestException(
+        'Change asset ownership by creating a new assigned asset instead of transferring it',
+      );
+    }
+
     return this.prisma.asset.update({
       where: { id },
-      data: updateAssetDto,
+      data: {
+        ...updateAssetDto,
+        assignedAt: updateAssetDto.assignedAt ?? existingAsset.assignedAt,
+      },
     });
   }
 
@@ -66,5 +94,16 @@ export class AssetService {
     return this.prisma.asset.delete({
       where: { id },
     });
+  }
+
+  private async ensureUserExists(userId: number): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
   }
 }

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="assetflowGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF7A18" />
+      <stop offset="1" stop-color="#0099F7" />
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="48" height="48" rx="16" fill="url(#assetflowGradient)" />
+  <rect x="9" y="9" width="46" height="46" rx="15" fill="black" fill-opacity="0.1" />
+  <g transform="translate(20 20)">
+    <circle cx="6" cy="6" r="4" fill="white" fill-opacity="0.92" />
+    <circle cx="18" cy="6" r="4" fill="white" fill-opacity="0.58" />
+    <circle cx="6" cy="18" r="4" fill="white" fill-opacity="0.58" />
+    <circle cx="18" cy="18" r="4" fill="white" fill-opacity="0.92" />
+  </g>
+</svg>

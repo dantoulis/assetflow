@@ -16,9 +16,10 @@
         <slot />
 
         <DialogClose
+          v-if="showCloseButton"
           class="absolute top-4 right-4 p-0.5 transition-colors rounded-md hover:bg-secondary"
         >
-          <X class="w-4 h-4" />
+          <Icon name="lucide:x" class="w-4 h-4"  />
           <span class="sr-only">Close</span>
         </DialogClose>
       </DialogContent>
@@ -27,10 +28,9 @@
 </template>
 
 <script setup lang="ts">
+import { reactiveOmit } from '@vueuse/core';
 import type { DialogContentEmits, DialogContentProps } from 'reka-ui';
 import type { HTMLAttributes } from 'vue';
-import { reactiveOmit } from '@vueuse/core';
-import { X } from 'lucide-vue-next';
 import {
   DialogClose,
   DialogContent,
@@ -44,7 +44,14 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps<DialogContentProps & { class?: HTMLAttributes['class'] }>();
+const props = withDefaults(
+  defineProps<
+    DialogContentProps & { class?: HTMLAttributes['class']; showCloseButton?: boolean }
+  >(),
+  {
+    showCloseButton: true,
+  },
+);
 const emits = defineEmits<DialogContentEmits>();
 
 const delegatedProps = reactiveOmit(props, 'class');
@@ -72,3 +79,4 @@ const handlePointerDownOutside = (event: {
   }
 };
 </script>
+

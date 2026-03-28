@@ -123,6 +123,40 @@ export interface TicketMessageCreatePayload {
   internal?: boolean;
 }
 
+export interface AssetCreatePayload {
+  title: string;
+  type: AssetType;
+  status: AssetStatus;
+  vendor: string;
+  reference: string;
+  userId: number;
+  billingCycle?: BillingCycle | null;
+  purchasedAt?: string | null;
+  assignedAt?: string | null;
+  renewalAt?: string | null;
+  expiresAt?: string | null;
+  seatCount?: number | null;
+  notes?: string | null;
+  tags?: string[];
+}
+
+export interface AssetUpdatePayload {
+  title?: string;
+  type?: AssetType;
+  status?: AssetStatus;
+  vendor?: string;
+  reference?: string;
+  billingCycle?: BillingCycle | null;
+  purchasedAt?: string | null;
+  assignedAt?: string | null;
+  renewalAt?: string | null;
+  expiresAt?: string | null;
+  seatCount?: number | null;
+  notes?: string | null;
+  tags?: string[];
+  userId?: number;
+}
+
 export interface AssetRequestCreatePayload {
   title: string;
   assetType?: AssetType;

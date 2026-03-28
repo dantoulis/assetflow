@@ -26,7 +26,7 @@
         :tone="index === 1 ? 'success' : index === 3 ? 'warning' : 'primary'"
       >
         <template #icon>
-          <component :is="metricIcons[index]" class="size-5" />
+          <Icon :name="metricIcons[index]!" class="size-5" />
         </template>
       </MetricCard>
     </section>
@@ -244,7 +244,6 @@
 </template>
 
 <script setup lang="ts">
-import { Boxes, ClipboardList, MessageSquareDot, UsersRound } from 'lucide-vue-next';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import {
   buildDailySeriesForRange,
@@ -306,7 +305,7 @@ await Promise.all([
   assetRequestsStore.fetchAll(),
 ]);
 
-const metricIcons = [UsersRound, Boxes, MessageSquareDot, ClipboardList];
+const metricIcons = ['lucide:users-round', 'lucide:boxes', 'lucide:message-square-dot', 'lucide:clipboard-list'];
 const chartColors: string[] = [
   'var(--color-chart-1)',
   'var(--color-chart-2)',
@@ -579,3 +578,4 @@ const distributionCenterValue = computed(() => {
 
 const userName = (userId: number) => getDisplayName(usersStore.findUserById(userId));
 </script>
+

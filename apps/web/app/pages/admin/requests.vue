@@ -3,7 +3,7 @@
     <PageIntro
       eyebrow="Asset requests"
       title="Review incoming demand and fulfill approved requests."
-      description="This queue connects user demand with real inventory you can assign immediately."
+      description="This queue connects user demand with instant provisioning once you approve."
     />
 
     <section class="grid gap-4 xl:grid-cols-4">
@@ -13,7 +13,7 @@
         delta="Total queue"
         hint="Every asset request in the system."
       >
-        <template #icon><ClipboardList class="size-5" /></template>
+        <template #icon><Icon name="lucide:clipboard-list" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         title="Pending"
@@ -22,16 +22,16 @@
         hint="Requests still waiting for a decision."
         tone="warning"
       >
-        <template #icon><Clock3 class="size-5" /></template>
+        <template #icon><Icon name="lucide:clock-3" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         title="Approved"
         :value="`${countsByStatus.APPROVED}`"
-        delta="Ready to fulfill"
-        hint="Requests that can be matched to an asset."
+        delta="Waiting on follow-through"
+        hint="Requests approved before provisioning completed."
         tone="success"
       >
-        <template #icon><BadgeCheck class="size-5" /></template>
+        <template #icon><Icon name="lucide:badge-check" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         title="Fulfilled"
@@ -40,7 +40,7 @@
         hint="Requests already linked to a real asset."
         tone="neutral"
       >
-        <template #icon><CircleCheckBig class="size-5" /></template>
+        <template #icon><Icon name="lucide:circle-check-big" class="size-5"  /></template>
       </MetricCard>
     </section>
 
@@ -48,7 +48,7 @@
       <CardHeader>
         <CardTitle>Review queue</CardTitle>
         <CardDescription>
-          Approve, reject, or fulfill requests directly from the admin surface.
+          Approve or reject requests directly from the admin surface.
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
@@ -101,21 +101,6 @@
               >
                 Reject
               </Button>
-              <AppSelectField
-                v-if="request.status === 'APPROVED'"
-                v-model="fulfillmentSelection[request.id]"
-                :options="fulfillmentOptions(request.requesterId)"
-                placeholder="Choose asset to fulfill"
-                trigger-class="min-w-56"
-              />
-              <Button
-                v-if="request.status === 'APPROVED'"
-                class="rounded-2xl"
-                :disabled="workingId === request.id || !fulfillmentSelection[request.id]"
-                @click="fulfillRequest(request.id)"
-              >
-                Fulfill
-              </Button>
             </div>
           </div>
         </div>
@@ -164,14 +149,14 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { BadgeCheck, CircleCheckBig, ClipboardList, Clock3 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
-import type { AppAssetRequest, AssetRequestReviewPayload } from '@/lib/app-types';
+import type { AppAssetRequest, AssetCreatePayload, AssetRequestReviewPayload } from '@/lib/app-types';
 
 definePageMeta({
   layout: 'admin',
@@ -192,34 +177,61 @@ const workingId = ref<number | null>(null);
 const rejectDialogOpen = ref(false);
 const rejectTarget = ref<AppAssetRequest | null>(null);
 const rejectionReason = ref('');
-const fulfillmentSelection = reactive<Record<number, number>>({});
 
 const userName = (userId: number) => {
   const user = usersStore.findUserById(userId);
   return user?.name || user?.username || 'Unknown user';
 };
-const fulfillmentOptions = (requesterId: number) => [
-  { label: 'Choose asset to fulfill', value: 0 },
-  ...assetsStore.byUserId(requesterId).map((asset) => ({
-    label: `${asset.title} | ${asset.reference}`,
-    value: asset.id,
-  })),
-];
-
 const openRejectDialog = (request: AppAssetRequest) => {
   rejectTarget.value = request;
   rejectionReason.value = '';
   rejectDialogOpen.value = true;
 };
+const buildProvisionedAssetPayload = (request: AppAssetRequest): AssetCreatePayload => {
+  const now = new Date();
+  const referenceDate = now.toISOString().slice(0, 10).replaceAll('-', '');
+
+  return {
+    title: request.title.trim(),
+    type: request.assetType ?? 'LAPTOP',
+    status: 'ACTIVE',
+    userId: request.requesterId,
+    vendor: request.vendor?.trim() || 'Internal procurement',
+    reference: `REQ-${request.id}-${referenceDate}`,
+    notes: request.justification?.trim() || null,
+    tags: ['request-fulfilled'],
+  };
+};
 
 const reviewRequest = async (id: number, status: AssetRequestReviewPayload['status']) => {
+  const request = requests.value.find((entry) => entry.id === id);
+
+  if (!request) {
+    toast.error('Unable to find the selected request.');
+    return;
+  }
+
   workingId.value = id;
 
   try {
+    if (status === 'APPROVED') {
+      await assetRequestsStore.reviewRequest(id, { status });
+      const createdAsset = await assetsStore.createAsset(buildProvisionedAssetPayload(request));
+      await assetRequestsStore.fulfillRequest(id, { fulfilledAssetId: createdAsset.id });
+      await assetsStore.fetchAll(true);
+      toast.success('Request approved and asset assigned');
+      return;
+    }
+
     await assetRequestsStore.reviewRequest(id, { status });
     toast.success(`Request ${status.toLowerCase()}`);
   } catch {
-    toast.error('Unable to review request');
+    await assetRequestsStore.fetchAll(true);
+    toast.error(
+      status === 'APPROVED'
+        ? 'Unable to approve and provision the asset'
+        : 'Unable to review request',
+    );
   } finally {
     workingId.value = null;
   }
@@ -254,21 +266,5 @@ const submitRejection = async () => {
     workingId.value = null;
   }
 };
-
-const fulfillRequest = async (id: number) => {
-  const fulfilledAssetId = fulfillmentSelection[id];
-
-  if (!fulfilledAssetId) return;
-
-  workingId.value = id;
-
-  try {
-    await assetRequestsStore.fulfillRequest(id, { fulfilledAssetId });
-    toast.success('Request fulfilled');
-  } catch {
-    toast.error('Unable to fulfill request');
-  } finally {
-    workingId.value = null;
-  }
-};
 </script>
+

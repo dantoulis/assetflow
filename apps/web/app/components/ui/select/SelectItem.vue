@@ -11,7 +11,7 @@
   >
     <span class="absolute left-3 flex size-4 items-center justify-center">
       <SelectItemIndicator>
-        <Check class="size-4 text-primary" />
+        <Icon name="lucide:check" class="size-4 text-primary"  />
       </SelectItemIndicator>
     </span>
     <SelectItemText>
@@ -21,10 +21,9 @@
 </template>
 
 <script setup lang="ts">
+import { reactiveOmit } from '@vueuse/core';
 import type { SelectItemProps } from 'reka-ui';
 import type { HTMLAttributes } from 'vue';
-import { reactiveOmit } from '@vueuse/core';
-import { Check } from 'lucide-vue-next';
 import { SelectItem, SelectItemIndicator, SelectItemText, useForwardProps } from 'reka-ui';
 import { cn } from '@/lib/utils';
 
@@ -37,3 +36,4 @@ const props = defineProps<SelectItemProps & { class?: HTMLAttributes['class'] }>
 const delegatedProps = reactiveOmit(props, 'class');
 const forwarded = useForwardProps(delegatedProps);
 </script>
+

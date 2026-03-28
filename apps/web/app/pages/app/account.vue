@@ -61,7 +61,7 @@
         delta="Current footprint"
         hint="All assets currently attached to your account."
       >
-        <template #icon><FolderKanban class="size-5" /></template>
+        <template #icon><Icon name="lucide:folder-kanban" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         class="h-full"
@@ -71,7 +71,7 @@
         hint="Support threads that are still active."
         tone="warning"
       >
-        <template #icon><MessagesSquare class="size-5" /></template>
+        <template #icon><Icon name="lucide:messages-square" class="size-5"  /></template>
       </MetricCard>
       <MetricCard
         class="h-full"
@@ -81,7 +81,7 @@
         hint="Requests you opened with the admin team."
         tone="success"
       >
-        <template #icon><ClipboardList class="size-5" /></template>
+        <template #icon><Icon name="lucide:clipboard-list" class="size-5"  /></template>
       </MetricCard>
     </section>
 
@@ -96,7 +96,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ClipboardList, FolderKanban, MessagesSquare } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { formatDate, getDisplayName, getInitials } from '@/lib/app-formatters';
 import type { UserUpdatePayload } from '@/lib/app-types';
@@ -150,3 +149,4 @@ const handleSubmit = async (payload: UserUpdatePayload) => {
   }
 };
 </script>
+

@@ -1,8 +1,7 @@
 <script lang="ts" setup>
+import { reactiveOmit } from '@vueuse/core';
 import type { RangeCalendarNextProps } from 'reka-ui';
 import type { HTMLAttributes } from 'vue';
-import { reactiveOmit } from '@vueuse/core';
-import { ChevronRight } from 'lucide-vue-next';
 import { RangeCalendarNext, useForwardProps } from 'reka-ui';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
@@ -28,7 +27,8 @@ const forwardedProps = useForwardProps(delegatedProps);
     v-bind="forwardedProps"
   >
     <slot>
-      <ChevronRight class="size-4" />
+      <Icon name="lucide:chevron-right" class="size-4"  />
     </slot>
   </RangeCalendarNext>
 </template>
+

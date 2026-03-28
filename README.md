@@ -2,6 +2,20 @@
 
 AssetFlow is a full-stack asset management platform for internal teams. It helps employees see what equipment and software they own, request new assets, open support tickets, and manage their account, while admins can oversee users, inventory, requests, and ticket workflows from a separate admin area.
 
+## Environment Files
+
+This repository uses three environment files:
+
+- `/.env` for Docker Compose
+- `/apps/api/.env` for local Nest API runs
+- `/apps/web/.env` for local Nuxt runs
+
+The split is deliberate:
+
+- Docker reads only the root `.env`
+- local API work reads `apps/api/.env`
+- local web work reads `apps/web/.env`
+
 ## What The App Does
 
 - Authenticates users with username/password and optional Google or GitHub OAuth.
@@ -61,12 +75,14 @@ cp .env.example .env
 3. Fill in any values you need in `.env`.
 
 Important variables:
+
 - `JWT_SECRET`: cookie/JWT signing secret.
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`: Google OAuth.
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_CALLBACK_URL`: GitHub OAuth.
 - `NUXT_PUBLIC_GOOGLE_AUTH_ENABLED`, `NUXT_PUBLIC_GITHUB_AUTH_ENABLED`: controls whether social auth buttons appear. Leave them `false` until the matching OAuth credentials are configured.
 
 JWT note:
+
 - This repository intentionally ships the demo JWT secret `top_secret_jwt` in the example env files.
 - That is done only because this project is currently treated as a test/demo application and the goal is zero-friction setup for reviewers.
 - If the app is ever deployed to a real shared environment, replace it immediately.
@@ -85,6 +101,7 @@ docker compose up --build -d
 - Postgres from host tools: `localhost:5433`
 
 What works from the example config alone:
+
 - Dockerized app boot
 - Postgres + migrations
 - automatic seed data
@@ -92,11 +109,13 @@ What works from the example config alone:
 - password reset through Mailpit
 
 What still needs user-specific credentials:
+
 - Google OAuth
 - GitHub OAuth
 - any non-local email provider
 
 Mailer note:
+
 - The default Docker mailer is Mailpit.
 - Mailpit does not require an SMTP username or password in this project.
 - The only mail-related values a fresh clone needs are already present in `.env.example`: `MAIL_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, and `SMTP_IGNORE_TLS`.
@@ -104,6 +123,7 @@ Mailer note:
 ### How To Get The Missing OAuth Env Vars
 
 The only intentionally missing values in the example Docker env are the social OAuth credentials:
+
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GITHUB_CLIENT_ID`
@@ -120,16 +140,19 @@ You get those values from the provider dashboards, not from this repository.
 4. Add the correct authorized values for the mode you are using.
 
 For Docker mode:
+
 - Authorized JavaScript origin: `http://localhost:3000`
 - Authorized redirect URI: `http://localhost:3000/api/auth/google/callback`
 
 For local mode:
+
 - Authorized JavaScript origin: `http://localhost:3000`
 - Authorized redirect URI: `http://localhost:3333/auth/google/callback`
 
 If your Google app is still in testing mode, add the Google accounts you want to use as test users on the OAuth consent screen.
 
 Official references:
+
 - [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials)
 - [Google Cloud OAuth client setup flow](https://cloud.google.com/application-integration/docs/configure-authentication-profiles)
 
@@ -142,18 +165,22 @@ Official references:
 4. Set the homepage URL and callback URL for the mode you are using.
 
 For Docker mode:
+
 - Homepage URL: `http://localhost:3000`
 - Authorization callback URL: `http://localhost:3000/api/auth/github/callback`
 
 For local mode:
+
 - Homepage URL: `http://localhost:3000`
 - Authorization callback URL: `http://localhost:3333/auth/github/callback`
 
 Important GitHub limitation:
+
 - GitHub OAuth Apps only support a single callback URL.
 - If you want both Docker mode and local direct-API mode, use separate GitHub OAuth apps or update the callback URL when you switch modes.
 
 Official references:
+
 - [GitHub OAuth app setup](https://docs.github.com/en/developers/apps/creating-an-oauth-app)
 - [GitHub OAuth callback behavior](https://docs.github.com/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)
 
@@ -167,6 +194,7 @@ Official references:
   - put the frontend visibility flags in `apps/web/.env`
 
 Frontend visibility flags:
+
 - `NUXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`
 - `NUXT_PUBLIC_GITHUB_AUTH_ENABLED=true`
 
@@ -224,16 +252,19 @@ The local setup is useful if you want faster frontend/backend iteration without 
 yarn install
 ```
 
-2. Copy the per-app env templates:
+2. Copy the local env templates:
 
 ```bash
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
 
+Do not reuse the root `.env` for local app execution. The root `.env` is only for Docker Compose.
+
 3. Update the local env files.
 
 For the API, the important values are in `apps/api/.env`:
+
 - `DATABASE_URL`
 - `FRONTEND_URL`
 - `BACKEND_URL`
@@ -244,6 +275,7 @@ For the API, the important values are in `apps/api/.env`:
 For this test/demo repository, the example API env already includes the shared demo JWT secret `top_secret_jwt` so a fresh clone can boot without inventing a secret first.
 
 For the web app, the important values are in `apps/web/.env`:
+
 - `NUXT_PUBLIC_API_BASE`
 - `NUXT_API_BASE_SERVER`
 - optional social-auth visibility flags, which should stay `false` until provider credentials are configured on the API side
@@ -312,6 +344,7 @@ docker compose up -d mailpit
 ```
 
 Then use:
+
 - SMTP: `localhost:1025`
 - Inbox UI: [http://localhost:8025](http://localhost:8025)
 
