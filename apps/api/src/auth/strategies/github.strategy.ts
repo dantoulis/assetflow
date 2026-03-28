@@ -2,6 +2,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { Strategy } from 'passport-github2';
 import type { Profile } from 'passport-github2';
+import { getGithubCallbackUrl } from '../../common/utils';
 
 type VerifyCallback = (error: Error | null, user?: unknown) => void;
 
@@ -9,9 +10,9 @@ type VerifyCallback = (error: Error | null, user?: unknown) => void;
 export class GithubStrategyService extends PassportStrategy(Strategy, 'github') {
   constructor() {
     super({
-      clientID: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      callbackURL: 'http://localhost:3333/auth/github/callback',
+      clientID: process.env.GITHUB_CLIENT_ID?.trim()!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET?.trim()!,
+      callbackURL: getGithubCallbackUrl()!,
       scope: ['user:email'],
     });
   }

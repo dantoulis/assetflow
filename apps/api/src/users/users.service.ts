@@ -41,7 +41,7 @@ export class UsersService {
           },
           {
             email: {
-              equals: createUserDto.password.trim(),
+              equals: createUserDto.email.trim(),
               mode: 'insensitive',
             },
           },

@@ -10,7 +10,7 @@ import { MailService } from '../mail/mail.service';
 import { PASSWORD_RESET_TOKEN_TTL, PASSWORD_RESET_TOKEN_TYPE } from './auth.constants';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { getFrontendUrl } from '../common/utils';
+import { getPasswordResetUrlBase } from '../common/utils';
 
 @Injectable()
 export class AuthService {
@@ -122,10 +122,7 @@ export class AuthService {
       },
     );
 
-    const frontendUrl = getFrontendUrl();
-    const resetPasswordBaseUrl =
-      process.env.PASSWORD_RESET_URL_BASE ??
-      (frontendUrl ? `${frontendUrl}/reset-password` : undefined);
+    const resetPasswordBaseUrl = getPasswordResetUrlBase();
 
     if (!resetPasswordBaseUrl) {
       throw new InternalServerErrorException('PASSWORD_RESET_URL_BASE is not configured');

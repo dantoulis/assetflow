@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, type Provider } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategyService } from './strategies/google.strategy';
 import { GithubStrategyService } from './strategies/github.strategy';
@@ -10,6 +10,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './roles.guard';
 import { MailModule } from '../mail/mail.module';
+import { getJwtSecret, isGithubAuthConfigured, isGoogleAuthConfigured } from '../common/utils';
+
+const oauthStrategyProviders: Provider[] = [];
+
+if (isGoogleAuthConfigured()) {
+  oauthStrategyProviders.push(GoogleStrategyService);
+}
+
+if (isGithubAuthConfigured()) {
+  oauthStrategyProviders.push(GithubStrategyService);
+}
 
 @Module({
   imports: [
@@ -18,7 +29,7 @@ import { MailModule } from '../mail/mail.module';
     UsersModule,
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET,
+      secret: getJwtSecret(),
       signOptions: {
         expiresIn: '1d',
       },
@@ -26,8 +37,7 @@ import { MailModule } from '../mail/mail.module';
   ],
   controllers: [AuthController],
   providers: [
-    GoogleStrategyService,
-    GithubStrategyService,
+    ...oauthStrategyProviders,
     AuthService,
     {
       provide: APP_GUARD,

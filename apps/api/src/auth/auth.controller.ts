@@ -15,7 +15,7 @@ import { AuthGuard as PassportAuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ACCESS_TOKEN_COOKIE, ACCESS_TOKEN_TTL_MS } from './auth.constants';
-import { getFrontendUrl } from '../common/utils';
+import { getFrontendUrl, shouldUseSecureCookies } from '../common/utils';
 import type { SafeUser, SocialProfile } from '../users/types';
 import type { AuthenticatedRequest } from './types';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -39,7 +39,7 @@ export class AuthController {
     return {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure: shouldUseSecureCookies(),
       path: '/',
     };
   }
