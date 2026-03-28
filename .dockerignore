@@ -1,0 +1,14 @@
+.git
+.vscode
+node_modules
+**/node_modules
+**/.nuxt
+**/.output
+**/.data
+**/.cache
+**/dist
+**/coverage
+.env
+.env.*
+!**/.env.example
+package-lock.json
