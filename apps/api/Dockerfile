@@ -12,7 +12,8 @@ COPY . .
 RUN yarn install --immutable
 RUN yarn workspace api prisma:generate
 RUN yarn workspace api build
-RUN chmod +x /app/scripts/docker/api-entrypoint.sh
+RUN sed -i 's/\r$//' /app/scripts/docker/api-entrypoint.sh \
+  && chmod +x /app/scripts/docker/api-entrypoint.sh
 
 ENV NODE_ENV=production
 ENV PORT=3333
