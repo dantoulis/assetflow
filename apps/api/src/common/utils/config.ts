@@ -127,23 +127,17 @@ export const validateApiRuntimeEnv = (): void => {
     errors.push('PASSWORD_RESET_URL_BASE or FRONTEND_URL must be configured.');
   }
 
-  const googleConfigEntries = [
-    trimEnvValue('GOOGLE_CLIENT_ID'),
-    trimEnvValue('GOOGLE_CLIENT_SECRET'),
-    getGoogleCallbackUrl(),
-  ].filter(Boolean);
-  if (googleConfigEntries.length > 0 && googleConfigEntries.length < 3) {
+  const googleClientId = trimEnvValue('GOOGLE_CLIENT_ID');
+  const googleClientSecret = trimEnvValue('GOOGLE_CLIENT_SECRET');
+  if ((googleClientId || googleClientSecret) && !isGoogleAuthConfigured()) {
     errors.push(
       'Google OAuth requires GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL or BACKEND_URL.',
     );
   }
 
-  const githubConfigEntries = [
-    trimEnvValue('GITHUB_CLIENT_ID'),
-    trimEnvValue('GITHUB_CLIENT_SECRET'),
-    getGithubCallbackUrl(),
-  ].filter(Boolean);
-  if (githubConfigEntries.length > 0 && githubConfigEntries.length < 3) {
+  const githubClientId = trimEnvValue('GITHUB_CLIENT_ID');
+  const githubClientSecret = trimEnvValue('GITHUB_CLIENT_SECRET');
+  if ((githubClientId || githubClientSecret) && !isGithubAuthConfigured()) {
     errors.push(
       'GitHub OAuth requires GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, and GITHUB_CALLBACK_URL or BACKEND_URL.',
     );
