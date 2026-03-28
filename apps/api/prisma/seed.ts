@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
-import { faker } from '@faker-js/faker';
 import { getDatabaseUrl } from '../src/common/utils';
 import * as bcrypt from 'bcrypt';
 import {
@@ -10,7 +9,7 @@ import {
   buildAdminSeed,
   buildAssetRequestSeeds,
   buildTicketSeedPlans,
-  buildUserSeed,
+  buildUserSeeds,
   type SeededUser,
 } from './seed-data';
 
@@ -19,18 +18,7 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 const saltOrRounds = 10;
 
-const createSeedUser = async (passwordHash: string): Promise<SeededUser> => {
-  return await prisma.user.create({
-    data: buildUserSeed(passwordHash),
-    include: {
-      assets: true,
-    },
-  });
-};
-
 const main = async () => {
-  faker.seed(20260318);
-
   const userPasswordHash = await bcrypt.hash(USER_PASSWORD, saltOrRounds);
   const adminPasswordHash = await bcrypt.hash(ADMIN_PASSWORD, saltOrRounds);
 
@@ -38,9 +26,19 @@ const main = async () => {
     data: buildAdminSeed(adminPasswordHash),
   });
 
-  const users = await Promise.all(
-    Array.from({ length: 5 }, () => createSeedUser(userPasswordHash)),
-  );
+  const users: SeededUser[] = [];
+  const userSeeds = buildUserSeeds(userPasswordHash);
+
+  for (const userSeed of userSeeds) {
+    const createdUser = await prisma.user.create({
+      data: userSeed,
+      include: {
+        assets: true,
+      },
+    });
+
+    users.push(createdUser);
+  }
 
   const ticketPlans = buildTicketSeedPlans(admin, users);
 
