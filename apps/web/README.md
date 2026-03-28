@@ -1,75 +1,66 @@
-# Nuxt Minimal Starter
+# AssetFlow Web
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+This package contains the Nuxt frontend for AssetFlow.
 
-## Setup
+## What It Covers
 
-Make sure to install dependencies:
+- public auth pages for login, register, forgot password, and reset password
+- employee dashboard pages for assets, requests, tickets, profile, and account settings
+- admin dashboard pages for users, assets, requests, tickets, and account management
+- SSR-friendly API access through configurable runtime URLs
 
-```bash
-# npm
-npm install
+## Main Tech
 
-# pnpm
-pnpm install
+- **Nuxt 4** for the application shell and SSR
+- **Vue 3** for components and reactivity
+- **Pinia** for client state
+- **Tailwind CSS 4** for styling
+- **shadcn-nuxt + Reka UI** for reusable UI primitives
 
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+## Useful Scripts
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+yarn workspace web dev
 ```
 
-## Production
-
-Build the application for production:
+Runs the Nuxt app in development mode.
 
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+yarn workspace web build
 ```
 
-Locally preview production build:
+Builds the production bundle.
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+yarn workspace web preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Serves the production build locally after a build.
+
+```bash
+yarn workspace web typecheck
+```
+
+Runs Nuxt typechecks.
+
+## Local Env
+
+Copy:
+
+```bash
+cp apps/web/.env.example apps/web/.env
+```
+
+Key variables:
+- `NUXT_PUBLIC_API_BASE`
+- `NUXT_API_BASE_SERVER`
+- `NUXT_PUBLIC_GOOGLE_AUTH_ENABLED`
+- `NUXT_PUBLIC_GITHUB_AUTH_ENABLED`
+
+## Docker Note
+
+When running through Docker Compose, the web container reads its environment from the root `.env` file and expects the browser to access the app through the proxy on `http://localhost:3000`.
+
+## Testing Status
+
+Automated testing for the web app is still a work in progress.
