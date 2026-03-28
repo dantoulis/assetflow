@@ -92,14 +92,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    entrypoint:
-      - /bin/sh
-      - /pgadmin-entrypoint.sh
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-assetflow@local.dev}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-assetflow}
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
-      PGADMIN_SERVER_JSON_FILE: /tmp/servers.json
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
       PGADMIN_REPLACE_SERVERS_ON_STARTUP: 'True'
       POSTGRES_DB: ${POSTGRES_DB:-assetflow}
       POSTGRES_USER: ${POSTGRES_USER:-assetflow}
@@ -107,7 +104,7 @@ services:
       - '${PGADMIN_PORT:-5050}:80'
     restart: unless-stopped
     volumes:
-      - ./scripts/docker/pgadmin-entrypoint.sh:/pgadmin-entrypoint.sh:ro
+      - ./infra/pgadmin/servers.json:/pgadmin4/servers.json:ro
 
   mailpit:
     image: axllent/mailpit:latest
