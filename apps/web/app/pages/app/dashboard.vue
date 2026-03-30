@@ -128,10 +128,7 @@
             </div>
           </NuxtLink>
 
-          <div
-            v-if="!renewals.length"
-            class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
-          >
+          <div v-if="!renewals.length" class="app-empty-state">
             Nothing is expiring soon. Your current assignments are in a healthy state.
           </div>
         </CardContent>
@@ -165,10 +162,7 @@
               </div>
             </NuxtLink>
 
-            <div
-              v-if="!recentTickets.length"
-              class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
-            >
+            <div v-if="!recentTickets.length" class="app-empty-state">
               You do not have any tickets yet.
             </div>
           </CardContent>
@@ -201,10 +195,7 @@
               </div>
             </NuxtLink>
 
-            <div
-              v-if="!recentRequests.length"
-              class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
-            >
+            <div v-if="!recentRequests.length" class="app-empty-state">
               No asset requests yet. Start one whenever you need a new tool or device.
             </div>
           </CardContent>

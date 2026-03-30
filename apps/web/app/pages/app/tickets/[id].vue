@@ -17,15 +17,15 @@
             <StatusBadge :status="ticket.status" />
             <StatusBadge :status="ticket.priority" />
           </div>
-          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-1 p-4">
             <p class="text-sm text-muted-foreground">Category</p>
             <p class="font-semibold">{{ humanizeEnum(ticket.category) }}</p>
           </div>
-          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-1 p-4">
             <p class="text-sm text-muted-foreground">Related asset</p>
             <p class="font-semibold">{{ assetTitle }}</p>
           </div>
-          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-1 p-4">
             <p class="text-sm text-muted-foreground">Last updated</p>
             <p class="font-semibold">{{ formatRelativeDate(ticket.updatedAt) }}</p>
           </div>

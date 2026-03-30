@@ -101,10 +101,7 @@
           </CardDescription>
         </CardHeader>
         <CardContent class="space-y-3">
-          <div
-            v-if="!renewals.length"
-            class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
-          >
+          <div v-if="!renewals.length" class="app-empty-state">
             Nothing is due inside the next 7 days.
           </div>
           <NuxtLink
@@ -187,10 +184,7 @@
               </div>
             </NuxtLink>
 
-            <div
-              v-if="!queueTickets.length"
-              class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
-            >
+            <div v-if="!queueTickets.length" class="app-empty-state">
               No active tickets are waiting in the queue.
             </div>
           </CardContent>
@@ -230,10 +224,7 @@
               </div>
             </NuxtLink>
 
-            <div
-              v-if="!queueRequests.length"
-              class="rounded-3xl border border-dashed border-border/70 bg-background p-6 text-sm text-muted-foreground"
-            >
+            <div v-if="!queueRequests.length" class="app-empty-state">
               No pending or approved requests need action right now.
             </div>
           </CardContent>

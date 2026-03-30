@@ -129,10 +129,7 @@
           </div>
         </div>
 
-        <div
-          v-if="!requests.length"
-          class="rounded-3xl border border-dashed border-border/70 bg-background/35 p-6 text-sm text-muted-foreground"
-        >
+        <div v-if="!requests.length" class="app-empty-state">
           You have not created an asset request yet.
         </div>
       </CardContent>

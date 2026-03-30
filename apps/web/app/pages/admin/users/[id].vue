@@ -58,7 +58,7 @@
           <div class="h-px bg-border/70" />
 
           <div class="grid gap-4 lg:grid-cols-2">
-            <div class="rounded-3xl border border-border/70 bg-background p-5">
+            <div class="app-inset-panel p-5">
               <div class="grid gap-4">
                 <div class="grid gap-1">
                   <p class="text-sm font-semibold text-foreground">Role access</p>
@@ -111,7 +111,7 @@
                 </div>
 
                 <div
-                  class="rounded-2xl border border-destructive/25 bg-background px-4 py-3 text-sm text-muted-foreground"
+                  class="app-inset-panel rounded-2xl border-destructive/25 px-4 py-3 text-sm text-muted-foreground"
                 >
                   <span class="font-semibold text-foreground">Important:</span>
                   admin accounts cannot be deleted. Once promoted, they remain admins in the current

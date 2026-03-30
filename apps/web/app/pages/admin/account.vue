@@ -45,9 +45,7 @@
             </div>
           </div>
 
-          <div
-            class="rounded-2xl border border-border/70 bg-background/55 px-4 py-3 text-sm text-muted-foreground"
-          >
+          <div class="app-inset-panel rounded-2xl px-4 py-3 text-sm text-muted-foreground">
             Your identity appears across review decisions, ticket replies, and admin assignment
             history.
           </div>

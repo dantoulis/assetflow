@@ -3,7 +3,7 @@
     <div class="relative mx-auto size-44">
       <div class="absolute inset-0 rounded-full" :style="{ backgroundImage: donutBackground }" />
       <div
-        class="absolute inset-5 rounded-full border border-border/60 bg-background/95 backdrop-blur"
+        class="absolute inset-5 rounded-full border border-border/60 bg-muted/85 backdrop-blur dark:bg-background/95"
       />
       <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -16,7 +16,7 @@
       <div
         v-for="segment in props.segments"
         :key="segment.label"
-        class="flex items-center justify-between rounded-2xl border border-border/60 bg-background/50 px-4 py-3"
+        class="flex items-center justify-between rounded-2xl border border-border/60 bg-muted/48 px-4 py-3 dark:bg-background/50"
       >
         <div class="flex items-center gap-3">
           <span class="size-3 rounded-full" :style="{ backgroundColor: segment.color }" />

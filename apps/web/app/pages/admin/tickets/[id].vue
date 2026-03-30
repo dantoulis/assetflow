@@ -66,19 +66,19 @@
             <StatusBadge :status="ticket.status" />
             <StatusBadge :status="ticket.priority" />
           </div>
-          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-1 p-4">
             <p class="text-sm text-muted-foreground">Requester</p>
             <p class="font-semibold">{{ requesterName }}</p>
           </div>
-          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-1 p-4">
             <p class="text-sm text-muted-foreground">Linked asset</p>
             <p class="font-semibold">{{ assetTitle }}</p>
           </div>
-          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-1 p-4">
             <p class="text-sm text-muted-foreground">Last updated</p>
             <p class="font-semibold">{{ formatRelativeDate(ticket.updatedAt) }}</p>
           </div>
-          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-1 p-4">
             <p class="text-sm text-muted-foreground">Assigned admin</p>
             <p class="font-semibold">{{ assignedAdminName }}</p>
           </div>
@@ -123,9 +123,7 @@
                   : 'Write a reply or internal note...'
               "
             />
-            <label
-              class="flex items-center gap-3 rounded-2xl border border-border/70 bg-background/55 px-4 py-3 text-sm"
-            >
+            <label class="app-inset-panel flex items-center gap-3 rounded-2xl px-4 py-3 text-sm">
               <input
                 v-model="internalNote"
                 type="checkbox"

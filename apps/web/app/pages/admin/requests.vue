@@ -52,11 +52,7 @@
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
-        <div
-          v-for="request in requests"
-          :key="request.id"
-          class="rounded-3xl border border-border/70 bg-background/55 p-4"
-        >
+        <div v-for="request in requests" :key="request.id" class="app-inset-panel p-4">
           <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
             <div class="space-y-3">
               <div class="flex flex-wrap gap-2">

@@ -226,12 +226,20 @@
   @apply grid gap-4 md:gap-6;
 }
 
+@utility app-inset-panel {
+  @apply rounded-3xl border border-border/70 bg-muted/52 dark:bg-background/55;
+}
+
+@utility app-empty-state {
+  @apply rounded-3xl border border-dashed border-border/70 bg-muted/34 p-6 text-sm text-muted-foreground dark:bg-background/35;
+}
+
 @utility app-list-item {
-  @apply block cursor-pointer rounded-3xl border border-border/75 bg-background p-4 transition hover:border-primary/30 hover:bg-primary/8;
+  @apply block cursor-pointer rounded-3xl border border-border/75 bg-muted/50 p-4 transition hover:border-primary/30 hover:bg-primary/8 dark:bg-background;
 }
 
 @utility app-select {
-  @apply flex h-11 w-full rounded-2xl border border-input bg-background/78 px-4 pr-10 text-sm shadow-sm outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring;
+  @apply flex h-11 w-full rounded-2xl border border-input bg-muted/58 px-4 pr-10 text-sm shadow-sm outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring dark:bg-background/78;
 }
 
 .app-select {

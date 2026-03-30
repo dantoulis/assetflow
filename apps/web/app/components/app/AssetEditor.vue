@@ -44,7 +44,7 @@
 
       <div v-else-if="fixedOwnerLabel" class="space-y-2 md:col-span-2">
         <Label>Assigned user</Label>
-        <div class="rounded-2xl border border-border/70 bg-background/55 px-4 py-3 text-sm">
+        <div class="app-inset-panel rounded-2xl px-4 py-3 text-sm">
           {{ fixedOwnerLabel }}
         </div>
       </div>

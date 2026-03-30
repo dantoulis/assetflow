@@ -14,26 +14,26 @@
             <StatusBadge :status="asset.status" />
           </div>
           <div class="grid gap-4 md:grid-cols-2">
-            <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+            <div class="app-inset-panel grid gap-1 p-4">
               <p class="text-sm text-muted-foreground">Vendor</p>
               <p class="font-semibold">{{ asset.vendor }}</p>
             </div>
-            <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+            <div class="app-inset-panel grid gap-1 p-4">
               <p class="text-sm text-muted-foreground">Reference</p>
               <p class="font-semibold">{{ asset.reference }}</p>
             </div>
-            <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+            <div class="app-inset-panel grid gap-1 p-4">
               <p class="text-sm text-muted-foreground">Owner</p>
               <p class="font-semibold">{{ ownerName }}</p>
             </div>
-            <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+            <div class="app-inset-panel grid gap-1 p-4">
               <p class="text-sm text-muted-foreground">Billing cadence</p>
               <p class="font-semibold">
                 {{ asset.billingCycle ? humanizeEnum(asset.billingCycle) : 'One-time' }}
               </p>
             </div>
           </div>
-          <div class="grid gap-2 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-2 p-4">
             <p class="text-sm text-muted-foreground">Notes</p>
             <p class="text-sm leading-6">
               {{ asset.notes || 'No notes recorded for this asset.' }}
@@ -82,11 +82,11 @@
           >
         </CardHeader>
         <CardContent class="space-y-4">
-          <div class="grid gap-1 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-1 p-4">
             <p class="text-sm text-muted-foreground">Purchased</p>
             <p class="font-semibold">{{ formatDate(asset.purchasedAt) }}</p>
           </div>
-          <div class="grid gap-2 rounded-3xl border border-border/70 bg-background/55 p-4">
+          <div class="app-inset-panel grid gap-2 p-4">
             <p class="text-sm text-muted-foreground">Owner profile</p>
             <p class="font-semibold">{{ ownerName }}</p>
             <p class="text-sm text-muted-foreground">{{ ownerMeta }}</p>
@@ -121,10 +121,7 @@
             </div>
           </NuxtLink>
 
-          <div
-            v-if="!relatedTickets.length"
-            class="rounded-3xl border border-dashed border-border/70 bg-background/35 p-6 text-sm text-muted-foreground"
-          >
+          <div v-if="!relatedTickets.length" class="app-empty-state">
             No support history is linked to this asset yet.
           </div>
         </CardContent>

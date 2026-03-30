@@ -123,10 +123,7 @@
           </div>
         </NuxtLink>
 
-        <div
-          v-if="!filteredAssets.length"
-          class="rounded-3xl border border-dashed border-border/70 bg-background/35 p-6 text-sm text-muted-foreground"
-        >
+        <div v-if="!filteredAssets.length" class="app-empty-state">
           No assets match the current filters.
         </div>
       </CardContent>
