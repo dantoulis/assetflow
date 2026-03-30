@@ -8,27 +8,58 @@
       <div class="grid gap-4 md:grid-cols-2">
         <div class="space-y-2">
           <Label for="account-name">Full name</Label>
-          <Input id="account-name" v-model="form.name" class="h-11 rounded-2xl" />
+          <Input
+            id="account-name"
+            v-model="form.name"
+            class="h-11 rounded-2xl"
+            :disabled="isDisabled('name')"
+          />
         </div>
         <div class="space-y-2">
           <Label for="account-username">Username</Label>
-          <Input id="account-username" v-model="form.username" class="h-11 rounded-2xl" />
+          <Input
+            id="account-username"
+            v-model="form.username"
+            class="h-11 rounded-2xl"
+            :disabled="isDisabled('username')"
+          />
         </div>
         <div class="space-y-2">
           <Label for="account-email">Email</Label>
-          <Input id="account-email" v-model="form.email" type="email" class="h-11 rounded-2xl" />
+          <Input
+            id="account-email"
+            v-model="form.email"
+            type="email"
+            class="h-11 rounded-2xl"
+            :disabled="isDisabled('email')"
+          />
         </div>
         <div class="space-y-2">
           <Label for="account-phone">Phone</Label>
-          <Input id="account-phone" v-model="form.phone" class="h-11 rounded-2xl" />
+          <Input
+            id="account-phone"
+            v-model="form.phone"
+            class="h-11 rounded-2xl"
+            :disabled="isDisabled('phone')"
+          />
         </div>
         <div class="space-y-2">
           <Label for="account-team">Team</Label>
-          <Input id="account-team" v-model="form.team" class="h-11 rounded-2xl" />
+          <Input
+            id="account-team"
+            v-model="form.team"
+            class="h-11 rounded-2xl"
+            :disabled="isDisabled('team')"
+          />
         </div>
         <div class="space-y-2">
           <Label for="account-location">Location</Label>
-          <Input id="account-location" v-model="form.location" class="h-11 rounded-2xl" />
+          <Input
+            id="account-location"
+            v-model="form.location"
+            class="h-11 rounded-2xl"
+            :disabled="isDisabled('location')"
+          />
         </div>
       </div>
 
@@ -55,6 +86,7 @@ const props = withDefaults(
     submitLabel?: string;
     saving?: boolean;
     embedded?: boolean;
+    disabledFields?: Array<keyof UserUpdatePayload>;
   }>(),
   {
     title: 'Account details',
@@ -62,6 +94,7 @@ const props = withDefaults(
     submitLabel: 'Save changes',
     saving: false,
     embedded: false,
+    disabledFields: () => [],
   },
 );
 
@@ -77,6 +110,9 @@ const form = reactive({
   team: '',
   location: '',
 });
+
+const disabledFieldSet = computed(() => new Set(props.disabledFields));
+const isDisabled = (field: keyof UserUpdatePayload) => disabledFieldSet.value.has(field);
 
 const syncForm = () => {
   form.name = props.user.name ?? '';
@@ -100,13 +136,32 @@ const resetForm = () => {
 };
 
 const submitForm = () => {
-  emit('submit', {
-    name: form.name.trim() || null,
-    username: form.username.trim(),
-    email: form.email.trim(),
-    phone: form.phone.trim() || null,
-    team: form.team.trim() || null,
-    location: form.location.trim() || null,
-  });
+  const payload: UserUpdatePayload = {};
+
+  if (!isDisabled('name')) {
+    payload.name = form.name.trim() || null;
+  }
+
+  if (!isDisabled('username')) {
+    payload.username = form.username.trim();
+  }
+
+  if (!isDisabled('email')) {
+    payload.email = form.email.trim();
+  }
+
+  if (!isDisabled('phone')) {
+    payload.phone = form.phone.trim() || null;
+  }
+
+  if (!isDisabled('team')) {
+    payload.team = form.team.trim() || null;
+  }
+
+  if (!isDisabled('location')) {
+    payload.location = form.location.trim() || null;
+  }
+
+  emit('submit', payload);
 };
 </script>

@@ -119,6 +119,17 @@ export class UsersService {
     });
   }
 
+  async findOneByPhone(phone: string): Promise<SafeUser | null> {
+    return await this.prisma.user.findFirst({
+      where: {
+        phone: {
+          equals: phone,
+        },
+      },
+      omit: { password: true },
+    });
+  }
+
   async linkSocialAccount(userId: number, profile: SocialProfile): Promise<void> {
     await this.prisma.authAccount.create({
       data: {
@@ -216,13 +227,50 @@ export class UsersService {
       throw new NotFoundException('User to update not found');
     }
 
-    if (requestingUser.role !== Role.ADMIN && requestingUser.sub !== id) {
+    const isAdmin = requestingUser.role === Role.ADMIN;
+
+    if (!isAdmin && requestingUser.sub !== id) {
       throw new ForbiddenException('You cannot update another user');
+    }
+
+    if (!isAdmin && updateUserDto.username !== undefined) {
+      throw new ForbiddenException('Only admins can update usernames');
+    }
+
+    const uniqueFields: (keyof UpdateUserDto)[] = ['email', 'phone', 'username'];
+    let updateUserDtoEntries = Object.entries(updateUserDto) as [
+      keyof UpdateUserDto,
+      UpdateUserDto[keyof UpdateUserDto],
+    ][];
+    updateUserDtoEntries = updateUserDtoEntries.filter((entry) => {
+      return uniqueFields.includes(entry[0]);
+    });
+    const normalizedUpdateUserDto: Record<string, unknown> = {};
+
+    for (const [key, value] of updateUserDtoEntries) {
+      if (value === undefined) {
+        continue;
+      } else {
+        const alreadyExisting = await this.prisma.user.findFirst({
+          where: {
+            [key]: value.trim(),
+            id: {
+              not: requestingUser.sub,
+            },
+          },
+        });
+
+        if (alreadyExisting) {
+          throw new ConflictException(`This ${key} is already in use.`);
+        }
+
+        normalizedUpdateUserDto[key] = value;
+      }
     }
 
     return this.prisma.user.update({
       where: { id },
-      data: updateUserDto,
+      data: { ...updateUserDto, ...normalizedUpdateUserDto },
       omit: { password: true },
     });
   }

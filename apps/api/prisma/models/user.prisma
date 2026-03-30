@@ -5,7 +5,7 @@ model User {
   password    String?
   name        String?
   role        Role      @default(USER)
-  phone       String?
+  phone       String?   @unique
   team        String?
   location    String?
   joinedAt    DateTime  @default(now())

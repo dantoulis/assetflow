@@ -257,6 +257,7 @@
 
 <script setup lang="ts">
 import { toast } from 'vue-sonner';
+import { getApiErrorMessage } from '@/lib/api-errors';
 import {
   formatDate,
   formatRelativeDate,
@@ -343,8 +344,10 @@ const saveDetails = async (payload: UserUpdatePayload) => {
   try {
     await usersStore.updateUser(user.value.id, payload);
     toast.success('User details updated');
-  } catch {
-    toast.error('Unable to update user details');
+  } catch (error: unknown) {
+    toast.error('Unable to update user details', {
+      description: getApiErrorMessage(error),
+    });
   } finally {
     savingDetails.value = false;
   }

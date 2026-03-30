@@ -29,6 +29,7 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @Roles([Role.ADMIN, Role.USER])
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,

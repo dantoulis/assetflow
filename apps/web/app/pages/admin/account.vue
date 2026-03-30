@@ -97,6 +97,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { toast } from 'vue-sonner';
+import { getApiErrorMessage } from '@/lib/api-errors';
 import { formatDate, getDisplayName, getInitials } from '@/lib/app-formatters';
 import type { UserUpdatePayload } from '@/lib/app-types';
 
@@ -148,8 +149,10 @@ const handleSubmit = async (payload: UserUpdatePayload) => {
     const updatedUser = await usersStore.updateUser(viewer.value.id, payload);
     setCurrentUser(updatedUser);
     toast.success('Account updated');
-  } catch {
-    toast.error('Unable to save account changes');
+  } catch (error: unknown) {
+    toast.error('Unable to save account changes', {
+      description: getApiErrorMessage(error),
+    });
   } finally {
     saving.value = false;
   }
