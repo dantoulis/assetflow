@@ -253,15 +253,46 @@ The local setup is useful if you want faster frontend/backend iteration without 
 ### Local Prerequisites
 
 - Node.js 24
-- Corepack/Yarn
+- Corepack-enabled Yarn 4.13.0
 - PostgreSQL running locally
 - Optional: Mailpit for local password reset email testing
+
+### Local Node And Yarn Setup
+
+This repository pins:
+
+- Node.js `24.x`
+- Yarn `4.13.0`
+
+Recommended setup on a fresh clone:
+
+```bash
+corepack enable
+corepack install
+yarn install
+```
+
+If `corepack` is not available on your machine, install it first and then enable it:
+
+```bash
+npm install -g corepack
+corepack enable
+corepack install
+yarn install
+```
+
+Important:
+
+- Node.js `24.x` is the intended local version for this repository.
+- Starting with Node.js `25`, Corepack is no longer bundled with Node by default, so a fresh machine may need the explicit `npm install -g corepack` step even if Node itself is already installed.
 
 ### Local Setup Steps
 
 1. Install dependencies:
 
 ```bash
+corepack enable
+corepack install
 yarn install
 ```
 
