@@ -13,7 +13,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import type { AuthAccountWithUser, SafeUser, SocialProfile } from './types';
-import { faker } from '@faker-js/faker';
 
 @Injectable()
 export class UsersService {
@@ -159,7 +158,7 @@ export class UsersService {
     });
 
     if (maybeExistingUser) {
-      username = `${username}-${faker.number.int({ min: 1, max: 1000 })}`;
+      username = `${username}-${Math.floor(Math.random() * 1000) + 1}`;
     }
 
     return username;
@@ -214,9 +213,7 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     request: AuthenticatedRequest,
   ): Promise<SafeUser> {
-    const userToUpdate = await this.prisma.user.findUnique({
-      where: { id },
-    });
+    const userToUpdate = await this.findOne(id);
     const requestingUser = request.user;
 
     if (!requestingUser) {
@@ -228,9 +225,15 @@ export class UsersService {
     }
 
     const isAdmin = requestingUser.role === Role.ADMIN;
+    const targetIsAnotherAdmin =
+      userToUpdate.role === Role.ADMIN && userToUpdate.id !== requestingUser.sub;
 
     if (!isAdmin && requestingUser.sub !== id) {
       throw new ForbiddenException('You cannot update another user');
+    }
+
+    if (isAdmin && targetIsAnotherAdmin) {
+      throw new ForbiddenException('You cannot update another admin');
     }
 
     if (!isAdmin && updateUserDto.username !== undefined) {
