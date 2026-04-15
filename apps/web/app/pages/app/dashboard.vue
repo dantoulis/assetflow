@@ -472,7 +472,7 @@ const trendSummary = computed(() => {
           ? 'in the last 30 days'
           : 'in the selected range';
 
-  return `${latestValue} ${label} in the latest bucket | ${periodLabel}`;
+  return `${latestValue} ${label} ${periodLabel}`;
 });
 
 const distributionMode = ref<DistributionMode>('ASSET_TYPES');

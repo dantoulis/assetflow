@@ -1184,6 +1184,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@iconify-json/lucide@npm:^1.2.102":
+  version: 1.2.102
+  resolution: "@iconify-json/lucide@npm:1.2.102"
+  dependencies:
+    "@iconify/types": "npm:*"
+  checksum: 10c0/06347532e9f6f034fe3cc68701d745eff450d4270eb71307c46dcb7ffe5c93d645663d1770bb22e42a5d69d2e8f17c6c766e37093ae78275fbd86b3f0128bb62
+  languageName: node
+  linkType: hard
+
 "@iconify/collections@npm:^1.0.641":
   version: 1.0.661
   resolution: "@iconify/collections@npm:1.0.661"
@@ -16326,6 +16335,7 @@ __metadata:
   resolution: "web@workspace:apps/web"
   dependencies:
     "@eslint/js": "npm:^9.18.0"
+    "@iconify-json/lucide": "npm:^1.2.102"
     "@internationalized/date": "npm:^3.12.0"
     "@nuxt/eslint": "npm:1.15.2"
     "@nuxt/fonts": "npm:^0.14.0"
