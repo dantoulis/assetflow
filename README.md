@@ -2,6 +2,8 @@
 
 AssetFlow is a full-stack asset management platform for internal teams. It helps employees see what equipment and software they own, request new assets, open support tickets, and manage their account, while admins can oversee users, inventory, requests, and ticket workflows from a separate admin area.
 
+This repository is published as a portfolio/demo application. The project is intended to be easy to clone, run, inspect, and discuss. The recommended way to explore it is through Docker so the full stack, seeded data, email sandbox, and database tooling all come up in a reproducible way.
+
 ## Environment Files
 
 This repository uses three environment files:
@@ -23,6 +25,15 @@ The split is deliberate:
 - Gives admins a separate dashboard to manage users, assets, requests, and support activity.
 - Supports password recovery through email.
 - Ships with local email testing through Mailpit and a ready-to-use Postgres database flow in Docker.
+
+## Demo Credentials
+
+After the seeded setup runs, you can sign in with:
+
+- **Admin**: username `maya.thompson`, password `admin`
+- **User**: username `elias.morgan`, password `user`
+
+These credentials work with the seeded demo data used by Docker and by the local `db:seed` flow.
 
 ## Technologies Used
 
@@ -99,6 +110,8 @@ docker compose up --build -d
 - Mailpit inbox: [http://localhost:8025](http://localhost:8025)
 - pgAdmin: [http://localhost:5050](http://localhost:5050)
 - Postgres from host tools: `localhost:5433`
+
+The Docker path is the recommended setup for reviewers because it is the least fragile and closest to the intended full-stack flow.
 
 What works from the example config alone:
 
@@ -363,6 +376,12 @@ Mailpit does not require SMTP credentials in this setup.
 - Docker mode expects browser-facing callback URLs on `http://localhost:3000/api/.../callback`.
 - Local mode usually expects direct API callback URLs on `http://localhost:3333/...`.
 - The committed JWT secret is intentionally public for demo convenience only. It should be treated as non-production.
+
+## Current Limitations
+
+- Automated test coverage is still being built out and is not yet representative of the full application surface.
+- OAuth login requires your own Google and GitHub app credentials; the repository does not ship real provider secrets.
+- Mailpit is included for local/demo password reset testing only and is not a production mail solution.
 
 ## Testing Status
 

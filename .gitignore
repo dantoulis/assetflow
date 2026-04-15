@@ -30,6 +30,7 @@ coverage
 .nuxt
 .nitro
 .cache
+*.tsbuildinfo
 package-lock.json
 npm-shrinkwrap.json
 
