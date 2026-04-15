@@ -10,8 +10,8 @@ type VerifyCallback = (error: Error | null, user?: unknown) => void;
 export class GithubStrategyService extends PassportStrategy(Strategy, 'github') {
   constructor() {
     super({
-      clientID: process.env.GITHUB_CLIENT_ID?.trim()!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET?.trim()!,
+      clientID: process.env.GITHUB_CLIENT_ID!.trim(),
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!.trim(),
       callbackURL: getGithubCallbackUrl()!,
       scope: ['user:email'],
     });

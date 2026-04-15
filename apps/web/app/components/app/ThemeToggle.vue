@@ -49,8 +49,8 @@
           </p>
         </div>
         <Icon
-          name="lucide:check"
           v-if="colorMode.preference === item.value"
+          name="lucide:check"
           class="ml-2 size-4 shrink-0 text-primary"
         />
       </DropdownMenuItem>

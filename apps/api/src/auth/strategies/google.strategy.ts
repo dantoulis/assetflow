@@ -8,8 +8,8 @@ import { getGoogleCallbackUrl } from '../../common/utils';
 export class GoogleStrategyService extends PassportStrategy(Strategy, 'google') {
   constructor() {
     super({
-      clientID: process.env.GOOGLE_CLIENT_ID?.trim()!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET?.trim()!,
+      clientID: process.env.GOOGLE_CLIENT_ID!.trim(),
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!.trim(),
       callbackURL: getGoogleCallbackUrl()!,
       scope: ['profile', 'email'],
     });
