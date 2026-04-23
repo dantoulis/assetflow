@@ -18,7 +18,20 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 const saltOrRounds = 10;
 
+const clearExistingData = async () => {
+  await prisma.$transaction(async (tx) => {
+    await tx.ticketMessage.deleteMany();
+    await tx.ticket.deleteMany();
+    await tx.assetRequest.deleteMany();
+    await tx.authAccount.deleteMany();
+    await tx.asset.deleteMany();
+    await tx.user.deleteMany();
+  });
+};
+
 const main = async () => {
+  await clearExistingData();
+
   const userPasswordHash = await bcrypt.hash(USER_PASSWORD, saltOrRounds);
   const adminPasswordHash = await bcrypt.hash(ADMIN_PASSWORD, saltOrRounds);
 
