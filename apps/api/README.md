@@ -21,32 +21,34 @@ This package contains the NestJS backend for AssetFlow.
 
 ## Useful Scripts
 
+Run all commands below from the repository root.
+
 ```bash
-yarn workspace api start:dev
+yarn api:dev
 ```
 
 Runs the API in watch mode.
 
 ```bash
-yarn workspace api build
+yarn api:build
 ```
 
 Builds the Nest app into `dist`.
 
 ```bash
-yarn workspace api prisma:migrate:deploy
+yarn api:db:migrate
 ```
 
 Applies database migrations.
 
 ```bash
-yarn workspace api db:seed
+yarn api:db:seed
 ```
 
 Seeds demo data.
 
 ```bash
-yarn workspace api typecheck
+yarn api:typecheck
 ```
 
 Runs TypeScript checks without emitting files.

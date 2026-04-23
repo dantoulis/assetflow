@@ -242,6 +242,7 @@ Stops containers and also deletes named volumes, which resets the Postgres data.
 ## Local Setup
 
 The local setup is useful if you want faster frontend/backend iteration without rebuilding containers, but it requires more manual setup and is less representative of the full deployed stack.
+All local commands below are intended to be run from the repository root. The repo still uses Yarn for monorepo package management, but the local command surface is exposed through root scripts rather than package-scoped command invocations.
 
 ### Local Limitations Compared To Docker
 
@@ -327,13 +328,13 @@ For the web app, the important values are in `apps/web/.env`:
 4. Apply database migrations:
 
 ```bash
-yarn workspace api prisma:migrate:deploy
+yarn api:db:migrate
 ```
 
 5. Seed demo data if you want sample records:
 
 ```bash
-yarn workspace api db:seed
+yarn api:db:seed
 ```
 
 6. Start both apps:
@@ -353,28 +354,28 @@ yarn dev
 yarn dev
 ```
 
-Starts the Nuxt app and the Nest API together from the root workspace.
+Starts the Nuxt app and the Nest API together from the repository root.
 
 ```bash
-yarn workspace api start:dev
+yarn api:dev
 ```
 
 Starts only the Nest API in watch mode.
 
 ```bash
-yarn workspace web dev
+yarn web:dev
 ```
 
 Starts only the Nuxt frontend.
 
 ```bash
-yarn workspace api prisma:migrate:deploy
+yarn api:db:migrate
 ```
 
 Applies existing Prisma migrations to the configured database.
 
 ```bash
-yarn workspace api db:seed
+yarn api:db:seed
 ```
 
 Seeds the database with demo users, assets, tickets, and requests.

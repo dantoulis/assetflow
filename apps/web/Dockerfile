@@ -10,7 +10,7 @@ RUN apt-get update \
 COPY . .
 
 RUN yarn install --immutable
-RUN yarn workspace web build
+RUN yarn web:build
 
 ENV NODE_ENV=production
 ENV PORT=3000

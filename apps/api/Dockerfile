@@ -10,8 +10,8 @@ RUN apt-get update \
 COPY . .
 
 RUN yarn install --immutable
-RUN yarn workspace api prisma:generate
-RUN yarn workspace api build
+RUN yarn api:prisma:generate
+RUN yarn api:build
 RUN sed -i 's/\r$//' /app/scripts/docker/api-entrypoint.sh \
   && chmod +x /app/scripts/docker/api-entrypoint.sh
 

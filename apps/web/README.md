@@ -19,26 +19,28 @@ This package contains the Nuxt frontend for AssetFlow.
 
 ## Useful Scripts
 
+Run all commands below from the repository root.
+
 ```bash
-yarn workspace web dev
+yarn web:dev
 ```
 
 Runs the Nuxt app in development mode.
 
 ```bash
-yarn workspace web build
+yarn web:build
 ```
 
 Builds the production bundle.
 
 ```bash
-yarn workspace web preview
+yarn web:preview
 ```
 
 Serves the production build locally after a build.
 
 ```bash
-yarn workspace web typecheck
+yarn web:typecheck
 ```
 
 Runs Nuxt typechecks.
